@@ -1,17 +1,16 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   
-  if (!session || !session.user) {
+  if (!session) {
     redirect("/login");
   }
 
-  const userId = session.user.id;
+  const userId = session.id;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

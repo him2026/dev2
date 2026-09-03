@@ -1,18 +1,17 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 
 export default async function CycleTracker() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
   
-  if (!session || !session.user) {
+  if (!session) {
     redirect("/login");
   }
 
-  const userId = session.user.id;
+  const userId = session.id;
 
   const cycleSettings = await prisma.cycle_settings.findUnique({
     where: { user_id: userId }

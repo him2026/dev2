@@ -2,22 +2,26 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Header() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const router = useRouter();
   const [themePanelOpen, setThemePanelOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const notifCount = 0; // Replace with real logic later
+  const notifCount = 0;
 
-  const handleThemeChange = (theme: string) => {
-    // Add theme change logic here if needed
-    // Usually via a ThemeProvider
-    setThemePanelOpen(false);
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch {
+      router.push("/login");
+    }
   };
 
   return (
@@ -38,73 +42,13 @@ export default function Header() {
             <button className="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
               <i className="fa-solid fa-bars"></i>
             </button>
-            <Link href="/dashboard" className="logo">
-              <span className="logo-icon">
-                <i className="fa-solid fa-heart"></i>
-              </span>
-              <span className="logo-text">HIM</span>
-            </Link>
           </div>
 
-          <nav className="header-nav" aria-label="Main navigation">
-            <Link href="/dashboard" className={`nav-link ${pathname === "/dashboard" ? "active" : ""}`}>
-              <i className="fa-solid fa-house"></i> <span>Dashboard</span>
-            </Link>
-            <Link href="/cycle-tracker" className={`nav-link ${pathname === "/cycle-tracker" ? "active" : ""}`}>
-              <i className="fa-solid fa-calendar-days"></i> <span>Tracker</span>
-            </Link>
-            <Link href="/chat" className={`nav-link ${pathname === "/chat" ? "active" : ""}`}>
-              <i className="fa-solid fa-comments"></i> <span>Chat</span>
-            </Link>
-            <Link href="/mood-journal" className={`nav-link ${pathname === "/mood-journal" ? "active" : ""}`}>
-              <i className="fa-solid fa-book"></i> <span>Journal</span>
-            </Link>
-            <Link href="/wellness" className={`nav-link ${pathname === "/wellness" ? "active" : ""}`}>
-              <i className="fa-solid fa-spa"></i> <span>Wellness</span>
-            </Link>
-            <Link href="/games" className={`nav-link ${pathname === "/games" ? "active" : ""}`}>
-              <i className="fa-solid fa-gamepad"></i> <span>Challenges</span>
-            </Link>
-            <Link href="/audiobooks" className={`nav-link ${pathname === "/audiobooks" ? "active" : ""}`}>
-              <i className="fa-solid fa-headphones"></i> <span>Audiobooks</span>
-            </Link>
-            <Link href="/insights" className={`nav-link ${pathname === "/insights" ? "active" : ""}`}>
-              <i className="fa-solid fa-chart-line"></i> <span>Insights</span>
-            </Link>
-          </nav>
-
           <div className="header-right">
-            <button className="call-header-btn" aria-label="Call HIM" title="Call HIM">
-              <i className="fa-solid fa-phone"></i>
-            </button>
-
-            <div className="theme-panel-wrapper">
-              <button
-                className="theme-panel-btn"
-                onClick={() => setThemePanelOpen(!themePanelOpen)}
-                aria-label="Change theme"
-                title="Quick Theme"
-              >
+            <div className="theme-wrapper">
+              <button className="theme-btn" onClick={() => setThemePanelOpen(!themePanelOpen)}>
                 <i className="fa-solid fa-palette"></i>
-                <span className="tp-dot" id="tpDot"></span>
               </button>
-              <div className={`theme-panel-dropdown ${themePanelOpen ? "open" : ""}`}>
-                <div className="tp-header">
-                  <h4>
-                    <i className="fa-solid fa-palette"></i> App Theme
-                  </h4>
-                  <Link href="/profile#theme-section">All themes &rarr;</Link>
-                </div>
-                {/* Simplified theme grid for now */}
-                <div className="tp-grid">
-                  <button className="tp-swatch" onClick={() => handleThemeChange("pink")}>
-                    <span className="tp-circle" style={{ background: "linear-gradient(135deg,#FF7096,#B19CD9)" }}></span>
-                  </button>
-                  <button className="tp-swatch" onClick={() => handleThemeChange("darknite")}>
-                    <span className="tp-circle" style={{ background: "linear-gradient(135deg,#1A1030,#FF7096)" }}></span>
-                  </button>
-                </div>
-              </div>
             </div>
 
             <div className="notif-wrapper">
@@ -125,8 +69,8 @@ export default function Header() {
 
             <div className="profile-wrapper">
               <button className="profile-btn" onClick={() => setProfileOpen(!profileOpen)}>
-                <div className="profile-avatar">{session?.user?.name?.charAt(0).toUpperCase() || "U"}</div>
-                <span className="profile-name">{session?.user?.name || "User"}</span>
+                <div className="profile-avatar">U</div>
+                <span className="profile-name">User</span>
                 <i className="fa-solid fa-chevron-down"></i>
               </button>
               <div className="profile-dropdown" style={{ display: profileOpen ? "block" : "none" }}>
@@ -134,7 +78,7 @@ export default function Header() {
                   <i className="fa-solid fa-user"></i> Profile
                 </Link>
                 <hr />
-                <a href="#" className="logout-link" onClick={(e) => { e.preventDefault(); signOut({ callbackUrl: "/login" }); }}>
+                <a href="#" className="logout-link" onClick={handleLogout}>
                   <i className="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
               </div>

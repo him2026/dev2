@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import OpenAI from "openai";
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     const body = await req.json();
     const { message, mood = "neutral" } = body;
 
     let cyclePhase = "Follicular Phase";
-    let userName = session?.user?.name || "Friend";
+    let userName = session?.name || "Friend";
 
     const nvidiaApiKey = process.env.NVIDIA_API_KEY;
 

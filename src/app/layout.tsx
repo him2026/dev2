@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
@@ -27,11 +26,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="/css/responsive.css" />
       </head>
       <body className={`${inter.variable} ${outfit.variable}`}>
-        <AuthProvider>
-          <ThemeProvider>
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" async></script>
       </body>
     </html>

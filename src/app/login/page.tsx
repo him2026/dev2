@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AOS from "aos";
@@ -23,19 +22,21 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (res?.error) {
-        setError(res.error);
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setError(data.error || "Invalid email or password.");
       } else {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err: any) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);

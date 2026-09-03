@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import AOS from "aos";
 
 export default function ChatPage() {
-  const { data: session } = useSession();
   const [messages, setMessages] = useState<any[]>([
     {
       sender: "ai",
