@@ -1,0 +1,250 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                   Int       @id @default(autoincrement())
+  full_name            String    @map("full_name")
+  email                String    @unique
+  password_hash        String    @map("password_hash")
+  date_of_birth        DateTime  @map("date_of_birth")
+  role                 String    @default("user")
+  avatar_url           String?   @map("avatar_url")
+  is_active            Boolean   @default(true) @map("is_active")
+  notification_enabled Boolean   @default(true) @map("notification_enabled")
+  theme_preference     String    @default("light") @map("theme_preference")
+  created_at           DateTime  @default(now())
+  updated_at           DateTime? @updatedAt
+
+  challenge_progresses ChallengeProgress[]
+  chat_sessions        ChatSession[]
+  cycle_settings       CycleSetting?
+  game_scores          GameScore[]
+  mood_logs            MoodLog[]
+  notifications        Notification[]
+  password_resets      PasswordReset[]
+  period_logs          PeriodLog[]
+  symptom_logs         SymptomLog[]
+  user_badges          UserBadge[]
+  wellness_scores      WellnessScore[]
+
+  @@map("users")
+}
+
+model Badge {
+  id             Int         @id @default(autoincrement())
+  name           String
+  description    String
+  icon           String
+  points_value   Int         @default(10) @map("points_value")
+  criteria_type  String      @map("criteria_type")
+  criteria_value Int         @map("criteria_value")
+  user_badges    UserBadge[]
+
+  @@map("badges")
+}
+
+model Challenge {
+  id                   Int                 @id @default(autoincrement())
+  title                String
+  description          String
+  duration_days        Int                 @default(7) @map("duration_days")
+  points_reward        Int                 @default(20) @map("points_reward")
+  category             String
+  is_active            Boolean             @default(true) @map("is_active")
+  challenge_progresses ChallengeProgress[]
+
+  @@map("challenges")
+}
+
+model ChallengeProgress {
+  id             Int        @id @default(autoincrement())
+  user_id        Int
+  challenge_id   Int
+  started_at     DateTime   @map("started_at")
+  days_completed Int        @default(0) @map("days_completed")
+  is_completed   Boolean    @default(false) @map("is_completed")
+  completed_at   DateTime?  @map("completed_at")
+  challenge      Challenge  @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  user           User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("challenge_progress")
+}
+
+model ChatSession {
+  id            Int           @id @default(autoincrement())
+  user_id       Int
+  mood_at_start String?       @map("mood_at_start")
+  cycle_phase   String?       @map("cycle_phase")
+  started_at    DateTime      @default(now()) @map("started_at")
+  ended_at      DateTime?     @map("ended_at")
+  messages      ChatMessage[]
+  user          User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id         Int         @id @default(autoincrement())
+  session_id Int
+  sender     String
+  message    String
+  sentiment  String?
+  created_at DateTime    @default(now()) @map("created_at")
+  session    ChatSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model ContentCategory {
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  icon             String?
+  wellness_content WellnessContent[]
+
+  @@map("content_categories")
+}
+
+model CycleSetting {
+  id                  Int       @id @default(autoincrement())
+  user_id             Int       @unique
+  avg_cycle_length    Int       @default(28) @map("avg_cycle_length")
+  avg_period_length   Int       @default(5) @map("avg_period_length")
+  last_period_start   DateTime  @map("last_period_start")
+  next_predicted_date DateTime? @map("next_predicted_date")
+  cycle_regularity    String    @default("unknown") @map("cycle_regularity")
+  pcos_flag           Boolean   @default(false) @map("pcos_flag")
+  updated_at          DateTime? @updatedAt @map("updated_at")
+  user                User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("cycle_settings")
+}
+
+model GameScore {
+  id        Int      @id @default(autoincrement())
+  user_id   Int
+  game_name String   @map("game_name")
+  score     Int
+  played_at DateTime @default(now()) @map("played_at")
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("game_scores")
+}
+
+model MoodLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  log_date    DateTime @map("log_date")
+  mood        String
+  intensity   Int      @default(5)
+  cycle_phase String?  @map("cycle_phase")
+  notes       String?
+  created_at  DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("mood_logs")
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  title      String
+  message    String
+  type       String
+  is_read    Boolean  @default(false) @map("is_read")
+  created_at DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model PasswordReset {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  token      String   @unique
+  expires_at DateTime @map("expires_at")
+  used       Boolean  @default(false)
+  created_at DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+model PeriodLog {
+  id             Int      @id @default(autoincrement())
+  user_id        Int
+  start_date     DateTime @map("start_date")
+  end_date       DateTime? @map("end_date")
+  flow_intensity String   @default("medium") @map("flow_intensity")
+  cycle_day      Int?     @map("cycle_day")
+  notes          String?
+  created_at     DateTime @default(now()) @map("created_at")
+  user           User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("period_logs")
+}
+
+model SymptomLog {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  log_date    DateTime @map("log_date")
+  cramps      Boolean  @default(false)
+  headache    Boolean  @default(false)
+  bloating    Boolean  @default(false)
+  fatigue     Boolean  @default(false)
+  mood_swings Boolean  @default(false) @map("mood_swings")
+  acne        Boolean  @default(false)
+  back_pain   Boolean  @default(false) @map("back_pain")
+  cravings    Boolean  @default(false)
+  severity    String   @default("mild")
+  created_at  DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("symptom_logs")
+}
+
+model UserBadge {
+  id        Int      @id @default(autoincrement())
+  user_id   Int
+  badge_id  Int
+  earned_at DateTime @default(now()) @map("earned_at")
+  badge     Badge    @relation(fields: [badge_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("user_badges")
+}
+
+model WellnessContent {
+  id           Int             @id @default(autoincrement())
+  category_id  Int
+  title        String
+  body         String
+  content_type String          @map("content_type")
+  target_phase String          @default("all") @map("target_phase")
+  media_url    String?         @map("media_url")
+  is_active    Boolean         @default(true) @map("is_active")
+  created_at   DateTime        @default(now()) @map("created_at")
+  category     ContentCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@map("wellness_content")
+}
+
+model WellnessScore {
+  id                 Int      @id @default(autoincrement())
+  user_id            Int
+  score_date         DateTime @map("score_date")
+  score              Int
+  mood_component     Int?     @map("mood_component")
+  symptom_component  Int?     @map("symptom_component")
+  activity_component Int?     @map("activity_component")
+  created_at         DateTime @default(now()) @map("created_at")
+  user               User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("wellness_scores")
+}
