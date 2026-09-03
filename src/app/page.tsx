@@ -7,7 +7,7 @@ import AOS from "aos";
 export default function Home() {
   useEffect(() => {
     AOS.init({
-      duration: 1000,
+      duration: 800,
       once: true,
       offset: 100,
     });
@@ -43,8 +43,8 @@ export default function Home() {
       const header = document.getElementById("header");
       if (header) {
         if (window.scrollY > 50) {
-          header.style.background = "rgba(255, 255, 255, 0.9)";
-          header.style.boxShadow = "0 4px 20px rgba(0,0,0,0.05)";
+          header.style.background = "rgba(255, 255, 255, 0.95)";
+          header.style.boxShadow = "0 4px 20px rgba(0,0,0,0.06)";
         } else {
           header.style.background = "rgba(255, 255, 255, 0.95)";
           header.style.boxShadow = "none";
@@ -69,7 +69,6 @@ export default function Home() {
     menuClose?.addEventListener("click", closeMenu);
     menuOverlay?.addEventListener("click", handleMenuOverlayClick);
 
-    // Add guest class to body
     document.body.classList.add("guest");
 
     return () => {
@@ -90,7 +89,7 @@ export default function Home() {
         <div className="header-inner">
           <Link href="/" className="logo">
             <span className="logo-icon">
-              <i className="fa-solid fa-heart"></i>
+              <i className="fa-solid fa-heart" style={{ color: "var(--color-primary)" }}></i>
             </span>
             <span className="logo-text">HIM</span>
           </Link>
@@ -131,21 +130,8 @@ export default function Home() {
       <section className="hero-revamp">
         <div className="hero-container">
           <div className="hero-text">
-            <div
-              className="hero-badge"
-              data-aos="fade-down"
-              style={{
-                background: "rgba(255, 112, 150, 0.1)",
-                color: "var(--color-primary)",
-                padding: "8px 20px",
-                borderRadius: "50px",
-                fontSize: "14px",
-                fontWeight: 700,
-                display: "inline-block",
-                marginBottom: "24px",
-              }}
-            >
-              <i className="fa-solid fa-sparkles"></i> AI-Powered Period Companion
+            <div className="hero-badge" data-aos="fade-down">
+              <i className="fa-solid fa-wand-magic-sparkles"></i> AI-Powered Period Companion
             </div>
             <h1 data-aos="fade-right" data-aos-delay="100">
               Your <span className="gradient-text">Intelligent Mate</span>
@@ -155,12 +141,8 @@ export default function Home() {
             <p data-aos="fade-right" data-aos-delay="200">
               HIM understands your emotions, predicts your cycle, and provides comfort when you need it most. More than a tracker — your empathetic digital ally.
             </p>
-            <div
-              className="hero-buttons"
-              data-aos="fade-up"
-              data-aos-delay="300"
-              style={{ display: "flex", gap: "16px", justifyContent: "flex-start" }}
-            >
+
+            <div className="hero-buttons" data-aos="fade-up" data-aos-delay="300">
               <Link href="/register" className="btn btn-primary btn-lg">
                 Get Started Free
               </Link>
@@ -169,79 +151,50 @@ export default function Home() {
               </a>
             </div>
 
-            <div
-              className="hero-stats"
-              data-aos="fade-up"
-              data-aos-delay="400"
-              style={{ marginTop: "60px", display: "flex", gap: "40px", justifyContent: "flex-start" }}
-            >
+            <div className="hero-stats" data-aos="fade-up" data-aos-delay="400">
               <div className="hero-stat">
-                <div className="number" style={{ fontSize: "32px", fontWeight: 800, color: "var(--color-primary)" }}>
+                <div className="number" style={{ color: "var(--color-primary)" }}>
                   4
                 </div>
-                <div className="label" style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-                  Cycle Phases
-                </div>
+                <div className="label">Cycle Phases</div>
               </div>
               <div className="hero-stat">
-                <div className="number" style={{ fontSize: "32px", fontWeight: 800, color: "var(--color-secondary)" }}>
+                <div className="number" style={{ color: "var(--color-secondary)" }}>
                   AI
                 </div>
-                <div className="label" style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-                  Empathy Engine
-                </div>
+                <div className="label">Empathy Engine</div>
               </div>
               <div className="hero-stat">
-                <div className="number" style={{ fontSize: "32px", fontWeight: 800, color: "var(--color-sage)" }}>
+                <div className="number" style={{ color: "var(--color-sage)" }}>
                   24/7
                 </div>
-                <div className="label" style={{ fontSize: "14px", color: "var(--text-muted)" }}>
-                  Support
-                </div>
+                <div className="label">Support</div>
               </div>
             </div>
 
-            <div
-              className="hero-context-card"
-              data-aos="fade-up"
-              data-aos-delay="500"
-              style={{
-                marginTop: "40px",
-                background: "white",
-                padding: "20px",
-                borderRadius: "24px",
-                border: "1px solid var(--border-light)",
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-                maxWidth: "440px",
-                boxShadow: "var(--shadow-md)",
-                position: "relative",
-                zIndex: 10,
-              }}
-            >
+            <div className="hero-context-card" data-aos="fade-up" data-aos-delay="500">
               <div
                 className="ctx-icon"
                 style={{
-                  width: "50px",
-                  height: "50px",
-                  borderRadius: "16px",
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "14px",
                   background: "var(--color-primary-light)",
                   color: "var(--color-primary)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "20px",
+                  fontSize: "18px",
                   flexShrink: 0,
                 }}
               >
                 <i className="fa-solid fa-lightbulb"></i>
               </div>
               <div className="ctx-info">
-                <h4 style={{ fontSize: "14px", marginBottom: "4px", color: "var(--text-primary)", fontWeight: 800, textAlign: "left" }}>
+                <h4 style={{ fontSize: "14px", marginBottom: "4px", color: "var(--text-primary)", fontWeight: 800 }}>
                   Phase Insight
                 </h4>
-                <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.4, textAlign: "left" }}>
+                <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0, lineHeight: 1.4 }}>
                   Your energy levels are highest during the <strong style={{ color: "var(--color-sage)" }}>Follicular Phase</strong>. Perfect for new goals!
                 </p>
               </div>
@@ -264,13 +217,13 @@ export default function Home() {
               </div>
               <div className="floating-card fc-2" data-speed="-3">
                 <div className="fc-icon" style={{ background: "#FFF0F3", color: "#E8567F" }}>
-                  <i className="fa-solid fa-face-smile-wink"></i>
+                  <i className="fa-solid fa-face-smile"></i>
                 </div>
                 <div className="fc-text">Mood Insights</div>
               </div>
               <div className="floating-card fc-3" data-speed="4">
                 <div className="fc-icon" style={{ background: "#F3EEFF", color: "#9B8EC0" }}>
-                  <i className="fa-solid fa-microchip-ai"></i>
+                  <i className="fa-solid fa-robot"></i>
                 </div>
                 <div className="fc-text">HIM AI Chat</div>
               </div>
@@ -289,17 +242,16 @@ export default function Home() {
             </div>
 
             <img
-              src="/images/wellness_hero_illustration_1777103912042.png"
+              src="/images/wellness_illustration.png"
               alt="Wellness Illustration"
               className="main-hero-img"
-              style={{ maxWidth: "450px" }}
             />
 
             <div className="deco-element de-1">
               <i className="fa-solid fa-heart"></i>
             </div>
             <div className="deco-element de-2">
-              <i className="fa-solid fa-sparkle"></i>
+              <i className="fa-solid fa-star"></i>
             </div>
             <div className="deco-element de-3">
               <i className="fa-solid fa-circle"></i>
@@ -314,7 +266,7 @@ export default function Home() {
             <span style={{ color: "var(--color-primary)", fontWeight: 800, fontSize: "14px", letterSpacing: "2px", textTransform: "uppercase" }}>
               Core Capabilities
             </span>
-            <h2 style={{ fontSize: "48px", marginTop: "12px" }}>The Future of Wellness</h2>
+            <h2>The Future of Wellness</h2>
             <p>Designed to be as dynamic as your cycle</p>
           </div>
 
@@ -329,32 +281,23 @@ export default function Home() {
 
             <div className="feature-card-premium" data-aos="fade-up" data-aos-delay="100">
               <div className="feature-icon-wrapper" style={{ background: "var(--color-secondary-light)", color: "var(--color-secondary)" }}>
-                <i className="fa-solid fa-message-heart"></i>
+                <i className="fa-solid fa-comment-dots"></i>
               </div>
               <h3>Empathetic AI Chat</h3>
               <p>Your companion HIM understands your phase and mood, offering personalized comfort and science-backed advice.</p>
-              <div style={{ marginTop: "20px", overflow: "hidden", borderRadius: "16px" }}>
-                <img
-                  src="/images/ai_chat_visualization_1777103933063.png"
-                  alt="AI Chat"
-                  style={{ width: "100%", height: "auto", opacity: 0.8, transition: "transform 0.5s ease" }}
-                  onMouseOver={(e) => ((e.target as HTMLElement).style.transform = "scale(1.1)")}
-                  onMouseOut={(e) => ((e.target as HTMLElement).style.transform = "scale(1)")}
-                />
-              </div>
             </div>
 
             <div className="feature-card-premium" data-aos="fade-up" data-aos-delay="200">
               <div className="feature-icon-wrapper" style={{ background: "var(--color-mint)", color: "var(--color-sage)" }}>
-                <i className="fa-solid fa-microphone-lines"></i>
+                <i className="fa-solid fa-microphone"></i>
               </div>
               <h3>Voice Companion</h3>
-              <p>Natural, soothing voice interaction powered by ElevenLabs for hands-free support during those tough days.</p>
+              <p>Natural, soothing voice interaction powered by NVIDIA Chatterbox for hands-free support during those tough days.</p>
             </div>
 
             <div className="feature-card-premium" data-aos="fade-up" data-aos-delay="0">
               <div className="feature-icon-wrapper" style={{ background: "#FFF5EB", color: "var(--color-warning)" }}>
-                <i className="fa-solid fa-book-open-reader"></i>
+                <i className="fa-solid fa-book-open"></i>
               </div>
               <h3>Wellness Library</h3>
               <p>Curated articles and audiobooks tailored to your current phase, from nutrition to mindfulness.</p>
@@ -370,7 +313,7 @@ export default function Home() {
 
             <div className="feature-card-premium" data-aos="fade-up" data-aos-delay="200">
               <div className="feature-icon-wrapper" style={{ background: "var(--color-secondary-light)", color: "var(--color-secondary)" }}>
-                <i className="fa-solid fa-chart-mixed"></i>
+                <i className="fa-solid fa-chart-line"></i>
               </div>
               <h3>Deep Analytics</h3>
               <p>Visualize your health trends over months to identify patterns and maintain optimal wellness.</p>
@@ -382,21 +325,21 @@ export default function Home() {
       <section className="usps-section" style={{ padding: "100px 0", background: "#fff" }}>
         <div className="container">
           <div className="section-header" data-aos="fade-up">
-            <h2 style={{ fontSize: "42px" }}>Why Choose HIM?</h2>
+            <h2>Why Choose HIM?</h2>
             <p>The HIM difference is in the details</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "32px", width: "100%", marginTop: "60px" }}>
-            <div className="card" data-aos="zoom-in" data-aos-delay="0">
+          <div className="card-grid-center">
+            <div className="usps-card" data-aos="zoom-in" data-aos-delay="0">
               <i className="fa-solid fa-shield-heart" style={{ fontSize: "32px", color: "var(--color-primary)", marginBottom: "20px" }}></i>
               <h4 style={{ marginBottom: "12px" }}>Privacy by Design</h4>
               <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Your data is encrypted and strictly private. We never sell your health information.</p>
             </div>
-            <div className="card" data-aos="zoom-in" data-aos-delay="100">
+            <div className="usps-card" data-aos="zoom-in" data-aos-delay="100">
               <i className="fa-solid fa-brain" style={{ fontSize: "32px", color: "var(--color-secondary)", marginBottom: "20px" }}></i>
               <h4 style={{ marginBottom: "12px" }}>AI-First Approach</h4>
-              <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Using Llama 3.1 to provide the most empathetic and context-aware advice.</p>
+              <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>Powered by DeepSeek V4 Flash for the most empathetic and context-aware advice.</p>
             </div>
-            <div className="card" data-aos="zoom-in" data-aos-delay="200">
+            <div className="usps-card" data-aos="zoom-in" data-aos-delay="200">
               <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "32px", color: "var(--color-sage)", marginBottom: "20px" }}></i>
               <h4 style={{ marginBottom: "12px" }}>Premium Experience</h4>
               <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>A beautiful, calming interface designed to reduce stress and improve mental well-being.</p>
@@ -405,32 +348,32 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="future-section" style={{ padding: "120px 0", background: "linear-gradient(180deg, #fff, #F3EEFF)" }}>
+      <section className="future-section" style={{ padding: "100px 0", background: "linear-gradient(180deg, #fff, #F3EEFF)" }}>
         <div className="container">
           <div className="section-header" data-aos="fade-up">
             <span style={{ color: "var(--color-secondary)", fontWeight: 800, fontSize: "14px", letterSpacing: "2px", textTransform: "uppercase" }}>
               Coming Soon
             </span>
-            <h2 style={{ fontSize: "42px", marginTop: "12px" }}>The Future of HIM</h2>
+            <h2>The Future of HIM</h2>
             <p>Expanding the horizon of women's digital health</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px", width: "100%", marginTop: "60px" }}>
-            <div className="feature-card-premium" style={{ opacity: 0.8, borderStyle: "dashed" }} data-aos="fade-up">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "32px", width: "100%", marginTop: "48px" }}>
+            <div className="feature-card-premium" style={{ opacity: 0.9, borderStyle: "dashed" }} data-aos="fade-up">
               <div className="feature-icon-wrapper" style={{ background: "#F0F7FF", color: "#007AFF" }}>
                 <i className="fa-solid fa-user-group"></i>
               </div>
               <h3>Partner Sharing Mode</h3>
               <p>Securely sync your cycle with a partner to improve communication and support during different phases.</p>
             </div>
-            <div className="feature-card-premium" style={{ opacity: 0.8, borderStyle: "dashed" }} data-aos="fade-up" data-aos-delay="100">
+            <div className="feature-card-premium" style={{ opacity: 0.9, borderStyle: "dashed" }} data-aos="fade-up" data-aos-delay="100">
               <div className="feature-icon-wrapper" style={{ background: "#FFF0F0", color: "#FF3B30" }}>
                 <i className="fa-solid fa-file-medical"></i>
               </div>
               <h3>Smart Doctor Reports</h3>
               <p>Generate professional health summaries and trend reports to share with your healthcare provider.</p>
             </div>
-            <div className="feature-card-premium" style={{ opacity: 0.8, borderStyle: "dashed" }} data-aos="fade-up" data-aos-delay="200">
+            <div className="feature-card-premium" style={{ opacity: 0.9, borderStyle: "dashed" }} data-aos="fade-up" data-aos-delay="200">
               <div className="feature-icon-wrapper" style={{ background: "#F5F5F5", color: "#333" }}>
                 <i className="fa-solid fa-masks-theater"></i>
               </div>
@@ -441,10 +384,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="how-it-works" id="how-it-works" style={{ background: "#FDF9FB", padding: "120px 0" }}>
+      <section className="how-it-works" id="how-it-works" style={{ background: "#FDF9FB", padding: "100px 0" }}>
         <div className="container">
           <div className="section-header" data-aos="fade-up">
-            <h2 style={{ fontSize: "42px" }}>Your Journey with HIM</h2>
+            <h2>Your Journey with HIM</h2>
             <p>Getting started is as simple as a heartbeat</p>
           </div>
 
@@ -496,15 +439,15 @@ export default function Home() {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <div className="logo">
-                <span className="logo-icon" style={{ color: "white" }}>
-                  <i className="fa-solid fa-heart"></i>
+              <div className="logo" style={{ marginBottom: "16px" }}>
+                <span className="logo-icon">
+                  <i className="fa-solid fa-heart" style={{ color: "#FF7096" }}></i>
                 </span>
-                <span className="logo-text" style={{ color: "white !important", WebkitTextFillColor: "white !important" }}>
+                <span className="logo-text" style={{ color: "#FFFFFF", WebkitTextFillColor: "#FFFFFF" }}>
                   HIM
                 </span>
               </div>
-              <p style={{ textAlign: "left" }}>Her Intelligent Mate — Empowering women through AI-driven wellness and empathetic technology.</p>
+              <p>Her Intelligent Mate — Empowering women through AI-driven wellness and empathetic technology.</p>
             </div>
             <div className="footer-links">
               <h4>Explore</h4>
