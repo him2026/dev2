@@ -55,7 +55,7 @@ img, canvas, video { max-width: 100%; height: auto; }
 
     /* All grids collapse to 1 col */
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr !important; }
-    .form-row { grid-template-columns: 1fr; }
+    .form-row, .form-row-3 { grid-template-columns: 1fr; }
 
     /* Challenges: 1 column on mobile */
     .challenges-grid { grid-template-columns: 1fr !important; }

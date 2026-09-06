@@ -78,43 +78,45 @@ export default function Register() {
           </div>
 
           {error && (
-            <div className="flash-message flash-error" style={{ display: "flex" }}>
+            <div className="flash-message flash-error" style={{ display: "flex", marginBottom: "10px" }}>
               <i className="fa-solid fa-exclamation-circle"></i>
               <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            <div className="form-group">
-              <label className="form-label" htmlFor="full_name">
-                Full Name
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                id="full_name"
-                name="full_name"
-                placeholder="Enter your name"
-                required
-                value={formData.full_name}
-                onChange={handleChange}
-              />
-            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label" htmlFor="full_name">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  className="form-input"
+                  id="full_name"
+                  name="full_name"
+                  placeholder="Enter your name"
+                  required
+                  value={formData.full_name}
+                  onChange={handleChange}
+                />
+              </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="email">
-                Email Address
-              </label>
-              <input
-                type="email"
-                className="form-input"
-                id="email"
-                name="email"
-                placeholder="you@example.com"
-                required
-                value={formData.email}
-                onChange={handleChange}
-              />
+              <div className="form-group">
+                <label className="form-label" htmlFor="email">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  className="form-input"
+                  id="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div className="form-row">
@@ -149,9 +151,11 @@ export default function Register() {
                 />
               </div>
             </div>
-            <p className="form-hint mb-2">Min 8 characters, 1 uppercase, 1 number</p>
+            <p className="form-hint" style={{ marginTop: "-6px", marginBottom: "8px", fontSize: "11px" }}>
+              Min 8 characters, 1 uppercase, 1 number
+            </p>
 
-            <div className="form-row">
+            <div className="form-row form-row-3">
               <div className="form-group">
                 <label className="form-label" htmlFor="date_of_birth">
                   Date of Birth
@@ -167,8 +171,22 @@ export default function Register() {
                 />
               </div>
               <div className="form-group">
+                <label className="form-label" htmlFor="last_period_start">
+                  Last Period Start
+                </label>
+                <input
+                  type="date"
+                  className="form-input"
+                  id="last_period_start"
+                  name="last_period_start"
+                  required
+                  value={formData.last_period_start}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="form-group">
                 <label className="form-label" htmlFor="avg_cycle_length">
-                  Avg Cycle Length (days)
+                  Avg Cycle (days)
                 </label>
                 <input
                   type="number"
@@ -184,22 +202,7 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="last_period_start">
-                Last Period Start Date
-              </label>
-              <input
-                type="date"
-                className="form-input"
-                id="last_period_start"
-                name="last_period_start"
-                required
-                value={formData.last_period_start}
-                onChange={handleChange}
-              />
-            </div>
-
-            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "8px" }} disabled={loading}>
+            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: "6px" }} disabled={loading}>
               <i className="fa-solid fa-heart"></i> {loading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
