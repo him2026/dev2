@@ -4,38 +4,35 @@ import HomeClientWrapper from "@/components/HomeClientWrapper";
 import JsonLd from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "Feminine AI Companion & AI Companion for Women | HIM",
-  description: "Experience HIM — the world's leading Feminine AI Companion & AI Companion for Women. Empathetic female wellness assistant, cycle tracking, PMS support, and 24/7 comforting voice chat.",
+  title: "AI Companion for Women | Empathetic Female AI Assistant - HIM",
+  description: "Discover HIM — the premier AI Companion for Women. Empowering women globally with empathetic 24/7 conversation, menstrual cycle intelligence, mood tracking, and complete privacy.",
   keywords: [
-    "feminine AI companion",
     "AI companion for women",
-    "feminine wellness AI",
-    "empathetic AI women",
-    "female AI assistant",
-    "women health AI companion",
-    "her intelligent mate feminine AI",
     "women AI companion",
     "female AI companion",
-    "AI for women"
+    "AI for women",
+    "female AI assistant",
+    "women wellness AI companion",
+    "her intelligent mate AI for women"
   ],
   alternates: {
-    canonical: "https://www.herintelligentmate.in/feminine-ai-companion",
+    canonical: "https://www.herintelligentmate.in/ai-companion-for-women",
   },
   openGraph: {
-    title: "Feminine AI Companion & AI Companion for Women | HIM",
-    description: "Discover the world's leading Feminine AI Companion built specifically for women's emotional and physical well-being.",
-    url: "https://www.herintelligentmate.in/feminine-ai-companion",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "HIM Feminine AI Companion" }],
+    title: "AI Companion for Women | Empathetic Female AI Assistant - HIM",
+    description: "Discover the world's leading AI Companion for Women built specifically for female health, emotional care, and cycle wellness.",
+    url: "https://www.herintelligentmate.in/ai-companion-for-women",
+    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "HIM AI Companion for Women" }],
   },
 };
 
-const feminineAiSchema = {
+const aiCompanionForWomenSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "@id": "https://www.herintelligentmate.in/feminine-ai-companion/#webpage",
-  "url": "https://www.herintelligentmate.in/feminine-ai-companion",
-  "name": "Feminine AI Companion & AI Companion for Women",
-  "description": "Discover HIM's Feminine AI Companion, offering emotional care, cycle phase awareness, and empathetic companion support built exclusively for women.",
+  "@id": "https://www.herintelligentmate.in/ai-companion-for-women/#webpage",
+  "url": "https://www.herintelligentmate.in/ai-companion-for-women",
+  "name": "AI Companion for Women - Empathetic Female AI Assistant",
+  "description": "Discover HIM's AI Companion for Women, offering 24/7 empathetic chat, cycle tracking, and emotional care built exclusively for women.",
   "publisher": {
     "@type": "Organization",
     "name": "Her Intelligent Mate",
@@ -43,10 +40,10 @@ const feminineAiSchema = {
   }
 };
 
-export default function FeminineAiCompanionPage() {
+export default function AiCompanionForWomenPage() {
   return (
     <HomeClientWrapper>
-      <JsonLd data={feminineAiSchema} />
+      <JsonLd data={aiCompanionForWomenSchema} />
       <div className="scroll-progress" id="scrollProgress"></div>
 
       <header className="header header-guest" id="header">
@@ -58,6 +55,7 @@ export default function FeminineAiCompanionPage() {
           <nav className="header-nav-guest">
             <Link href="/" className="nav-link-guest">Home</Link>
             <Link href="/period-companion" className="nav-link-guest">Period Companion</Link>
+            <Link href="/feminine-ai-companion" className="nav-link-guest">Feminine AI</Link>
             <Link href="/cycle-tracking-ai" className="nav-link-guest">Cycle AI</Link>
             <Link href="/blog" className="nav-link-guest">Articles</Link>
             <Link href="/login" className="btn btn-ghost-nav">Login</Link>
@@ -71,23 +69,23 @@ export default function FeminineAiCompanionPage() {
           <div className="hero-container">
             <div className="hero-text">
               <div className="hero-badge" data-aos="fade-down">
-                <i className="fa-solid fa-sparkles"></i> World's #1 Feminine AI Companion
+                <i className="fa-solid fa-heart"></i> World's #1 AI Companion for Women
               </div>
               <h1 data-aos="fade-right">
-                The Premier <span className="gradient-text">Feminine AI Companion</span> & AI for Women
+                Empathetic <span className="gradient-text">AI Companion for Women</span>
               </h1>
               <p data-aos="fade-right" data-aos-delay="100">
-                Generic artificial intelligence lacks the nuance of female biology and emotional rhythms. <strong>HIM (Her Intelligent Mate)</strong> is engineered as a dedicated <strong>Feminine AI Companion</strong> and <strong>AI Companion for Women</strong> — understanding your body's subtle hormonal shifts, mood changes, and daily well-being needs with total empathy and strict data privacy.
+                Women deserve technology that truly gets them. <strong>HIM (Her Intelligent Mate)</strong> is designed as the ultimate <strong>AI Companion for Women</strong> — providing empathetic digital dialogue, mood insights, cycle prediction, and self-care recommendations tailored to female physiological and emotional rhythms.
               </p>
               <div className="hero-buttons" data-aos="fade-up" data-aos-delay="200">
                 <Link href="/register" className="btn btn-primary btn-lg">
-                  Connect with Your AI Companion
+                  Meet Your AI Mate
                 </Link>
               </div>
             </div>
             <div className="hero-visual" data-aos="fade-left">
               <div className="central-woman-frame">
-                <img src="/images/wellness_illustration.png" alt="Feminine AI Companion Illustration" className="main-hero-img" />
+                <img src="/images/wellness_illustration.png" alt="AI Companion for Women Illustration" className="main-hero-img" />
               </div>
             </div>
           </div>
@@ -96,32 +94,32 @@ export default function FeminineAiCompanionPage() {
         <section style={{ padding: "80px 0", background: "#fff" }}>
           <div className="container">
             <div className="section-header">
-              <h2>Why HIM is the Ultimate AI Companion for Women</h2>
-              <p>Built from the ground up to support women's unique mental and physical health</p>
+              <h2>Built Specifically for Women's Needs</h2>
+              <p>Empathetic intelligence calibrated for female health, emotional care, and cycle awareness</p>
             </div>
             <div className="feature-grid-revamp" style={{ marginTop: "40px" }}>
               <div className="feature-card-premium">
                 <div className="feature-icon-wrapper" style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}>
-                  <i className="fa-solid fa-brain"></i>
+                  <i className="fa-solid fa-user-female"></i>
                 </div>
-                <h3>Empathetic Female Assistant</h3>
-                <p>HIM tailors its conversation style, tone, and guidance whether you are in your Menstrual, Follicular, Ovulatory, or Luteal phase.</p>
+                <h3>24/7 Female Support</h3>
+                <p>Feel supported at any time. Talk to HIM about stress, mood shifts, daily goals, or menstrual symptoms without hesitation.</p>
               </div>
 
               <div className="feature-card-premium">
                 <div className="feature-icon-wrapper" style={{ background: "var(--color-secondary-light)", color: "var(--color-secondary)" }}>
-                  <i className="fa-solid fa-shield-heart"></i>
+                  <i className="fa-solid fa-microphone"></i>
                 </div>
-                <h3>100% Confidential & Secure</h3>
-                <p>Your emotional thoughts, cycle logs, and chat histories are end-to-end encrypted. Total privacy guaranteed for every woman using HIM.</p>
+                <h3>Voice Companion</h3>
+                <p>Natural voice interaction powered by speech synthesis for hands-free conversations whenever typing feels tiring.</p>
               </div>
 
               <div className="feature-card-premium">
                 <div className="feature-icon-wrapper" style={{ background: "var(--color-mint)", color: "var(--color-sage)" }}>
-                  <i className="fa-solid fa-gem"></i>
+                  <i className="fa-solid fa-shield-heart"></i>
                 </div>
-                <h3>Holistic Feminine Wellness</h3>
-                <p>Combines mindfulness exercises, custom audiobooks, mood journals, and hands-free voice chat to support complete well-being.</p>
+                <h3>Privacy Guaranteed</h3>
+                <p>Your health metrics and conversations remain 100% private, encrypted, and strictly confidential.</p>
               </div>
             </div>
           </div>
@@ -131,10 +129,10 @@ export default function FeminineAiCompanionPage() {
           <div className="container">
             <div className="cta-box">
               <div className="cta-content">
-                <h2>Ready to Connect with Your Feminine AI Companion?</h2>
-                <p>Join women globally on www.herintelligentmate.in.</p>
+                <h2>Experience the #1 AI Companion for Women Today</h2>
+                <p>Join thousands of women worldwide on www.herintelligentmate.in.</p>
                 <Link href="/register" className="btn btn-primary btn-lg">
-                  Get Started Free
+                  Create Your Free Account
                 </Link>
               </div>
             </div>

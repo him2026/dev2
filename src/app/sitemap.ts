@@ -11,13 +11,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/period-companion`,
+      url: `${baseUrl}/feminine-ai-companion`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/feminine-ai-companion`,
+      url: `${baseUrl}/ai-companion-for-women`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/period-companion`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.95,
