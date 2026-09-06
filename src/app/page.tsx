@@ -162,49 +162,37 @@ export default function Home() {
                 />
               </div>
 
-              {/* Revolving Orbit Badges */}
+              {/* Perfectly Aligned Level Floating Badges */}
               <div className="orbit-container">
-                <div className="orbit-rotator">
-                  <div className="floating-card fc-1">
-                    <div className="fc-inner">
-                      <div className="fc-icon" style={{ background: "#E8FFEF", color: "#2E7D32" }}>
-                        <i className="fa-solid fa-heart-pulse"></i>
-                      </div>
-                      <div className="fc-text">Phase Tracking</div>
-                    </div>
+                <div className="floating-card fc-1">
+                  <div className="fc-icon" style={{ background: "#E8FFEF", color: "#2E7D32" }}>
+                    <i className="fa-solid fa-heart-pulse"></i>
                   </div>
-                  <div className="floating-card fc-2">
-                    <div className="fc-inner">
-                      <div className="fc-icon" style={{ background: "#FFF0F3", color: "#E8567F" }}>
-                        <i className="fa-solid fa-face-smile"></i>
-                      </div>
-                      <div className="fc-text">Mood Insights</div>
-                    </div>
+                  <div className="fc-text">Phase Tracking</div>
+                </div>
+                <div className="floating-card fc-2">
+                  <div className="fc-icon" style={{ background: "#FFF0F3", color: "#E8567F" }}>
+                    <i className="fa-solid fa-face-smile"></i>
                   </div>
-                  <div className="floating-card fc-3">
-                    <div className="fc-inner">
-                      <div className="fc-icon" style={{ background: "#F3EEFF", color: "#9B8EC0" }}>
-                        <i className="fa-solid fa-robot"></i>
-                      </div>
-                      <div className="fc-text">HIM AI Chat</div>
-                    </div>
+                  <div className="fc-text">Mood Insights</div>
+                </div>
+                <div className="floating-card fc-3">
+                  <div className="fc-icon" style={{ background: "#F3EEFF", color: "#9B8EC0" }}>
+                    <i className="fa-solid fa-robot"></i>
                   </div>
-                  <div className="floating-card fc-4">
-                    <div className="fc-inner">
-                      <div className="fc-icon" style={{ background: "#EBF3FB", color: "#1976D2" }}>
-                        <i className="fa-solid fa-microphone"></i>
-                      </div>
-                      <div className="fc-text">Voice Companion</div>
-                    </div>
+                  <div className="fc-text">HIM AI Chat</div>
+                </div>
+                <div className="floating-card fc-4">
+                  <div className="fc-icon" style={{ background: "#EBF3FB", color: "#1976D2" }}>
+                    <i className="fa-solid fa-microphone"></i>
                   </div>
-                  <div className="floating-card fc-5">
-                    <div className="fc-inner">
-                      <div className="fc-icon" style={{ background: "#FFF5EB", color: "#F57C00" }}>
-                        <i className="fa-solid fa-star"></i>
-                      </div>
-                      <div className="fc-text">Wellness Badges</div>
-                    </div>
+                  <div className="fc-text">Voice Companion</div>
+                </div>
+                <div className="floating-card fc-5">
+                  <div className="fc-icon" style={{ background: "#FFF5EB", color: "#F57C00" }}>
+                    <i className="fa-solid fa-star"></i>
                   </div>
+                  <div className="fc-text">Wellness Badges</div>
                 </div>
               </div>
 
