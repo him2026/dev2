@@ -12,20 +12,18 @@ export default function HomeClientWrapper({ children }: { children: React.ReactN
     });
 
     const handleMouseMove = (e: MouseEvent) => {
-      const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
-      const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+      const moveX = (e.clientX - window.innerWidth / 2) * 0.015;
+      const moveY = (e.clientY - window.innerHeight / 2) * 0.015;
 
-      document.querySelectorAll(".floating-card").forEach((card) => {
-        const el = card as HTMLElement;
-        const speed = parseFloat(el.getAttribute("data-speed") || "1");
-        el.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
-      });
+      const womanFrame = document.querySelector(".central-woman-frame") as HTMLElement;
+      if (womanFrame) {
+        womanFrame.style.transform = `translate(${moveX * 1.5}px, ${moveY * 1.5}px)`;
+      }
 
-      document.querySelectorAll(".deco-element").forEach((card) => {
-        const el = card as HTMLElement;
-        const speed = 2;
-        el.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px) rotate(${moveX * 10}deg)`;
-      });
+      const glowCircle = document.querySelector(".hero-glow-circle") as HTMLElement;
+      if (glowCircle) {
+        glowCircle.style.transform = `translate(${moveX * 0.8}px, ${moveY * 0.8}px)`;
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
