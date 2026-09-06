@@ -389,6 +389,148 @@
     .fc-4, .fc-5 { left: -10px; }
 }
 
+/* ============================================
+   SINGLE COLUMN TOPIC HUBS & FLASHCARD STYLED FAQ
+   ============================================ */
+
+.topic-hubs-container-single {
+    max-width: 840px;
+    margin: 40px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.topic-hub-banner-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(255, 112, 150, 0.2);
+    border-radius: 24px;
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-shadow: 0 8px 24px rgba(255, 112, 150, 0.06);
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.topic-hub-banner-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(255, 112, 150, 0.16);
+    border-color: rgba(255, 112, 150, 0.4);
+}
+
+.topic-hub-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+.topic-hub-banner-left .feature-icon-wrapper {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.topic-hub-banner-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.topic-hub-banner-info p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .topic-hub-banner-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .topic-hub-banner-left {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* FLASHCARD FAQ STYLE */
+.faq-flashcard-container {
+    max-width: 840px;
+    margin: 40px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.faq-flashcard {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid rgba(255, 112, 150, 0.18);
+    box-shadow: 0 10px 30px rgba(177, 156, 217, 0.08);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.faq-flashcard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    border-radius: 6px 0 0 6px;
+}
+
+.faq-flashcard:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 48px rgba(255, 112, 150, 0.18);
+    border-color: rgba(255, 112, 150, 0.35);
+}
+
+.faq-flashcard-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.faq-flashcard-badge {
+    background: rgba(255, 112, 150, 0.12);
+    color: var(--color-primary);
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.faq-flashcard h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.35;
+    margin: 0;
+}
+
+.faq-flashcard-body {
+    padding-left: 14px;
+    border-left: 3px solid rgba(255, 112, 150, 0.2);
+}
+
+.faq-flashcard-body p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin: 0;
+}
+
 /* Feature Cards Overrides */
 .glass-features {
     padding: 100px 0;

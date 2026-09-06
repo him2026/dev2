@@ -266,7 +266,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* TOPIC HUBS INTERNAL LINKING SECTION */}
+        {/* TOPIC HUBS - SINGLE COLUMN LAYOUT */}
         <section className="topic-hubs-section" style={{ padding: "80px 0", background: "linear-gradient(180deg, #FAF7FF 0%, #FFFFFF 100%)" }} aria-labelledby="topic-hubs-heading">
           <div className="container">
             <div className="section-header" data-aos="fade-up">
@@ -277,47 +277,64 @@ export default function Home() {
               <p>In-depth guides, specialized capabilities, and research-backed tools for every aspect of women's cycle health</p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", marginTop: "40px" }}>
-              <div className="feature-card-premium" style={{ background: "#fff", border: "1px solid rgba(255, 112, 150, 0.2)" }} data-aos="fade-up">
-                <div className="feature-icon-wrapper" style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}>
-                  <i className="fa-solid fa-heart"></i>
+            {/* SINGLE COLUMN CONTAINER */}
+            <div className="topic-hubs-container-single">
+              <div className="topic-hub-banner-card" data-aos="fade-up">
+                <div className="topic-hub-banner-left">
+                  <div className="feature-icon-wrapper" style={{ background: "var(--color-primary-light)", color: "var(--color-primary)" }}>
+                    <i className="fa-solid fa-heart"></i>
+                  </div>
+                  <div className="topic-hub-banner-info">
+                    <h3>AI Period Companion</h3>
+                    <p>Discover how HIM delivers 24/7 empathetic chat, PMS comfort, and personalized cycle support tailored to your unique rhythm.</p>
+                  </div>
                 </div>
-                <h3>AI Period Companion</h3>
-                <p style={{ fontSize: "14px", marginBottom: "16px" }}>Discover how HIM delivers 24/7 empathetic chat, PMS comfort, and personalized cycle support tailored to your unique rhythm.</p>
-                <Link href="/period-companion" className="btn btn-secondary btn-sm">
+                <Link href="/period-companion" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap" }}>
                   Learn About AI Period Companion &rarr;
                 </Link>
               </div>
 
-              <div className="feature-card-premium" style={{ background: "#fff", border: "1px solid rgba(155, 142, 192, 0.2)" }} data-aos="fade-up" data-aos-delay="100">
-                <div className="feature-icon-wrapper" style={{ background: "var(--color-secondary-light)", color: "var(--color-secondary)" }}>
-                  <i className="fa-solid fa-sparkles"></i>
+              <div className="topic-hub-banner-card" data-aos="fade-up" data-aos-delay="100">
+                <div className="topic-hub-banner-left">
+                  <div className="feature-icon-wrapper" style={{ background: "var(--color-secondary-light)", color: "var(--color-secondary)" }}>
+                    <i className="fa-solid fa-sparkles"></i>
+                  </div>
+                  <div className="topic-hub-banner-info">
+                    <h3>Feminine AI Companion</h3>
+                    <p>Explore cutting-edge empathetic artificial intelligence built specifically for women's emotional and physical wellness.</p>
+                  </div>
                 </div>
-                <h3>Feminine AI Companion</h3>
-                <p style={{ fontSize: "14px", marginBottom: "16px" }}>Explore cutting-edge empathetic artificial intelligence built specifically for women's emotional and physical wellness.</p>
-                <Link href="/feminine-ai-companion" className="btn btn-secondary btn-sm">
+                <Link href="/feminine-ai-companion" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap" }}>
                   Explore Feminine AI &rarr;
                 </Link>
               </div>
 
-              <div className="feature-card-premium" style={{ background: "#fff", border: "1px solid rgba(46, 125, 50, 0.2)" }} data-aos="fade-up" data-aos-delay="200">
-                <div className="feature-icon-wrapper" style={{ background: "var(--color-mint)", color: "var(--color-sage)" }}>
-                  <i className="fa-solid fa-chart-pie"></i>
+              <div className="topic-hub-banner-card" data-aos="fade-up" data-aos-delay="200">
+                <div className="topic-hub-banner-left">
+                  <div className="feature-icon-wrapper" style={{ background: "var(--color-mint)", color: "var(--color-sage)" }}>
+                    <i className="fa-solid fa-chart-pie"></i>
+                  </div>
+                  <div className="topic-hub-banner-info">
+                    <h3>Cycle Tracking AI</h3>
+                    <p>Master the 4 phases of your menstrual cycle with predictive algorithms, symptom correlation, and energy forecasts.</p>
+                  </div>
                 </div>
-                <h3>Cycle Tracking AI</h3>
-                <p style={{ fontSize: "14px", marginBottom: "16px" }}>Master the 4 phases of your menstrual cycle with predictive algorithms, symptom correlation, and energy forecasts.</p>
-                <Link href="/cycle-tracking-ai" className="btn btn-secondary btn-sm">
+                <Link href="/cycle-tracking-ai" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap" }}>
                   Master Cycle Tracking &rarr;
                 </Link>
               </div>
 
-              <div className="feature-card-premium" style={{ background: "#fff", border: "1px solid rgba(245, 124, 0, 0.2)" }} data-aos="fade-up" data-aos-delay="300">
-                <div className="feature-icon-wrapper" style={{ background: "#FFF5EB", color: "var(--color-warning)" }}>
-                  <i className="fa-solid fa-newspaper"></i>
+              <div className="topic-hub-banner-card" data-aos="fade-up" data-aos-delay="300">
+                <div className="topic-hub-banner-left">
+                  <div className="feature-icon-wrapper" style={{ background: "#FFF5EB", color: "var(--color-warning)" }}>
+                    <i className="fa-solid fa-newspaper"></i>
+                  </div>
+                  <div className="topic-hub-banner-info">
+                    <h3>Wellness Articles & Guides</h3>
+                    <p>Read our expert guides on managing PMS naturally, understanding hormonal shifts, and leveraging AI for feminine care.</p>
+                  </div>
                 </div>
-                <h3>Wellness Articles & Guides</h3>
-                <p style={{ fontSize: "14px", marginBottom: "16px" }}>Read our expert guides on managing PMS naturally, understanding hormonal shifts, and leveraging AI for feminine care.</p>
-                <Link href="/blog" className="btn btn-secondary btn-sm">
+                <Link href="/blog" className="btn btn-secondary btn-sm" style={{ whiteSpace: "nowrap" }}>
                   Browse Wellness Articles &rarr;
                 </Link>
               </div>
@@ -352,52 +369,65 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FREQUENTLY ASKED QUESTIONS SECTION (SEO & SCHEMA ALIGNED) */}
+        {/* FREQUENTLY ASKED QUESTIONS SECTION (FLASHCARD STYLE) */}
         <section className="faq-section" style={{ padding: "90px 0", background: "#FAF7FF" }} aria-labelledby="faq-heading">
-          <div className="container" style={{ maxWidth: "800px" }}>
+          <div className="container">
             <div className="section-header" data-aos="fade-up">
               <span className="hero-badge" style={{ marginBottom: "16px" }}>
-                <i className="fa-solid fa-circle-question"></i> FAQ
+                <i className="fa-solid fa-layer-group"></i> FLASHCARDS
               </span>
               <h2 id="faq-heading">Frequently Asked Questions</h2>
-              <p>Everything you need to know about HIM — Your AI Period Companion</p>
+              <p>Explore flashcards detailing everything you need to know about HIM</p>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginTop: "40px" }}>
-              <div className="usps-card" style={{ textAlign: "left", padding: "28px" }} data-aos="fade-up">
-                <h3 style={{ fontSize: "18px", marginBottom: "10px", color: "var(--text-primary)" }}>
-                  What is an AI Period Companion?
-                </h3>
-                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  An AI Period Companion is an intelligent, empathetic digital assistant designed specifically for women. It accurately predicts menstrual cycle phases, tracks mood fluctuations, provides science-backed PMS coping strategies, and engages in comforting 24/7 conversations adapted to your hormonal phase.
-                </p>
+            {/* FLASHCARD FAQ STACK */}
+            <div className="faq-flashcard-container">
+              <div className="faq-flashcard" data-aos="fade-up">
+                <div className="faq-flashcard-header">
+                  <span className="faq-flashcard-badge">FLASHCARD 01</span>
+                  <h3>What is an AI Period Companion?</h3>
+                </div>
+                <div className="faq-flashcard-body">
+                  <p>
+                    An AI Period Companion is an intelligent, empathetic digital assistant designed specifically for women. It accurately predicts menstrual cycle phases, tracks mood fluctuations, provides science-backed PMS coping strategies, and engages in comforting 24/7 conversations adapted to your hormonal phase.
+                  </p>
+                </div>
               </div>
 
-              <div className="usps-card" style={{ textAlign: "left", padding: "28px" }} data-aos="fade-up" data-aos-delay="100">
-                <h3 style={{ fontSize: "18px", marginBottom: "10px", color: "var(--text-primary)" }}>
-                  How does HIM (Her Intelligent Mate) support women during PMS and menstruation?
-                </h3>
-                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  HIM blends cycle forecasting with emotionally intelligent conversational AI. It offers voice interaction, phase-specific self-care guides, mood tracking, and empathetic dialogue to alleviate stress, cramps, and emotional ups and downs during premenstrual and menstrual phases.
-                </p>
+              <div className="faq-flashcard" data-aos="fade-up" data-aos-delay="100">
+                <div className="faq-flashcard-header">
+                  <span className="faq-flashcard-badge" style={{ background: "rgba(177, 156, 217, 0.15)", color: "var(--color-secondary)" }}>FLASHCARD 02</span>
+                  <h3>How does HIM (Her Intelligent Mate) support women during PMS and menstruation?</h3>
+                </div>
+                <div className="faq-flashcard-body">
+                  <p>
+                    HIM blends cycle forecasting with emotionally intelligent conversational AI. It offers voice interaction, phase-specific self-care guides, mood tracking, and empathetic dialogue to alleviate stress, cramps, and emotional ups and downs during premenstrual and menstrual phases.
+                  </p>
+                </div>
               </div>
 
-              <div className="usps-card" style={{ textAlign: "left", padding: "28px" }} data-aos="fade-up" data-aos-delay="200">
-                <h3 style={{ fontSize: "18px", marginBottom: "10px", color: "var(--text-primary)" }}>
-                  Is my period and cycle health data private on HIM?
-                </h3>
-                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  Yes. Your privacy is paramount. HIM is architected with privacy-by-design standards: all cycle logs, mood journals, and AI chats are strictly encrypted, confidential, and will never be monetized or sold to third parties.
-                </p>
+              <div className="faq-flashcard" data-aos="fade-up" data-aos-delay="200">
+                <div className="faq-flashcard-header">
+                  <span className="faq-flashcard-badge" style={{ background: "rgba(46, 125, 50, 0.12)", color: "var(--color-sage)" }}>FLASHCARD 03</span>
+                  <h3>Is my period and cycle health data private on HIM?</h3>
+                </div>
+                <div className="faq-flashcard-body">
+                  <p>
+                    Yes. Your privacy is paramount. HIM is architected with privacy-by-design standards: all cycle logs, mood journals, and AI chats are strictly encrypted, confidential, and will never be monetized or sold to third parties.
+                  </p>
+                </div>
               </div>
 
-              <div className="usps-card" style={{ textAlign: "left", padding: "28px" }} data-aos="fade-up" data-aos-delay="300">
-                <h3 style={{ fontSize: "18px", marginBottom: "10px", color: "var(--text-primary)" }}>
-                  Can I talk to HIM using voice commands?
-                </h3>
-                <p style={{ fontSize: "15px", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  Yes! HIM includes a dedicated Voice Companion feature powered by NVIDIA Chatterbox, allowing comfortable, hands-free voice conversations whenever typing feels tiring during heavy flow or cramp days.
-                </p>
+              <div className="faq-flashcard" data-aos="fade-up" data-aos-delay="300">
+                <div className="faq-flashcard-header">
+                  <span className="faq-flashcard-badge" style={{ background: "rgba(245, 124, 0, 0.12)", color: "var(--color-warning)" }}>FLASHCARD 04</span>
+                  <h3>Can I talk to HIM using voice commands?</h3>
+                </div>
+                <div className="faq-flashcard-body">
+                  <p>
+                    Yes! HIM includes a dedicated Voice Companion feature powered by NVIDIA Chatterbox, allowing comfortable, hands-free voice conversations whenever typing feels tiring during heavy flow or cramp days.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
