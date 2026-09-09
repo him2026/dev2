@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
-import { clearSession } from "@/lib/session";
 
 export async function POST() {
-  await clearSession();
-  return NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true });
+
+  // Clear the session cookie
+  response.cookies.set("him_session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0, // Expire immediately
+  });
+
+  return response;
 }

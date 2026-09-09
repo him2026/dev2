@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/session";
-import prisma from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
@@ -13,18 +13,23 @@ export default async function CycleTracker() {
 
   const userId = session.id;
 
-  const cycleSettings = await prisma.cycle_settings.findUnique({
-    where: { user_id: userId }
-  });
+  const { data: cycleSettings, error: cycleError } = await supabase
+    .from("cycle_settings")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
 
-  if (!cycleSettings) {
+  if (cycleError || !cycleSettings) {
     redirect("/dashboard");
   }
 
-  const periodLogs = await prisma.period_logs.findMany({
-    where: { user_id: userId },
-    orderBy: { start_date: 'desc' }
-  });
+  const { data: periodLogsData } = await supabase
+    .from("period_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("start_date", { ascending: false });
+
+  const periodLogs = periodLogsData || [];
 
   const daysUntil = cycleSettings?.next_predicted_date 
     ? Math.ceil((new Date(cycleSettings.next_predicted_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))

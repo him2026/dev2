@@ -50,9 +50,9 @@ export default function Register() {
       if (!res.ok) {
         setError(data.error || "Failed to register.");
       } else {
-        // Automatically login after successful registration, or redirect to login page.
-        // For simplicity, redirecting to login.
-        router.push("/login?msg=registered");
+        // Auto-login: session cookie is set by the API, redirect to dashboard
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err: any) {
       setError("An unexpected error occurred. Please try again.");

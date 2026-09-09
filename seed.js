@@ -1,43 +1,49 @@
-const Database = require('better-sqlite3');
+const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 
-const db = new Database('./prisma/dev.db');
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ehfcfprgvsfcdwjgpmzo.supabase.co";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_hXV0bVWpfXvaazbjaw8DrQ_YR3CPU-Q";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function seed() {
   const email = 'karrinki9608@gmail.com';
   const password = 'Rinki@26';
   const hashedPassword = await bcrypt.hash(password, 10);
-  const now = new Date().toISOString();
 
-  const stmtCreate = db.prepare(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      name TEXT,
-      email TEXT UNIQUE,
-      password TEXT,
-      profile_image TEXT,
-      active_theme TEXT DEFAULT 'default',
-      role TEXT DEFAULT 'user',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  stmtCreate.run();
+  // Try to insert the admin user
+  const { data: user, error } = await supabase
+    .from('users')
+    .insert({
+      full_name: 'Admin User',
+      email: email,
+      password_hash: hashedPassword,
+      role: 'admin',
+      date_of_birth: '1995-01-01T00:00:00Z',
+      is_active: true
+    })
+    .select()
+    .single();
 
-  const stmt = db.prepare('INSERT INTO users (id, name, email, password, profile_image, active_theme, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-  
-  try {
-    stmt.run('user_admin_12345', 'Admin User', email, hashedPassword, null, 'default', 'admin', now, now);
-    console.log('Admin user created successfully');
-  } catch (err) {
-    if (err.message.includes('UNIQUE constraint failed')) {
+  if (error) {
+    // Supabase returns 23505 for unique constraint violation
+    if (error.code === '23505') {
       console.log('Admin user already exists. Updating password...');
-      const updateStmt = db.prepare('UPDATE users SET password = ? WHERE email = ?');
-      updateStmt.run(hashedPassword, email);
-      console.log('Admin password updated successfully');
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ password_hash: hashedPassword })
+        .eq('email', email);
+      
+      if (updateError) {
+        console.error('Error updating admin password:', updateError);
+      } else {
+        console.log('Admin password updated successfully');
+      }
     } else {
-      console.error('Error seeding database:', err);
+      console.error('Error seeding database:', error);
     }
+  } else {
+    console.log('Admin user created successfully');
   }
 }
 
