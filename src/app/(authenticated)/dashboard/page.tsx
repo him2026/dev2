@@ -1,4 +1,4 @@
-cimport { getSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { redirect } from "next/navigation";
