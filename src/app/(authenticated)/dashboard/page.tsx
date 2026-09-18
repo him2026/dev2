@@ -4,7 +4,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import QuickMoodSelector from "@/components/QuickMoodSelector";
 import DashboardTabNavigator from "@/components/DashboardTabNavigator";
-import { getSession } from "@/lib/session";
 
 export default async function Dashboard() {
   const session = await getSession();
