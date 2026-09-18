@@ -30,7 +30,11 @@ export default function PartnerModePage() {
     }
   };
 
-  const partnerUrl = `http://localhost:3001/?code=${pairingCode}`;
+  const partnerBase = process.env.NEXT_PUBLIC_PARTNER_URL || 
+    (typeof window !== "undefined" && !window.location.hostname.includes("localhost") 
+      ? `${window.location.protocol}//partner.${window.location.hostname.replace(/^app\./, "")}` 
+      : "http://localhost:3001");
+  const partnerUrl = `${partnerBase}/?code=${pairingCode}`;
 
   return (
     <div className="container py-5" style={{ paddingTop: "20px" }}>
