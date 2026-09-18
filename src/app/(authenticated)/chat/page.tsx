@@ -1,56 +1,37 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AOS from "aos";
 
+interface Message {
+  id?: string;
+  sender: "user" | "ai";
+  message: string;
+  created_at: Date | string;
+}
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState<any[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       sender: "ai",
-      message: "Hello! I am HIM, your personal wellness companion. How are you feeling today?",
-      created_at: new Date()
-    }
+      message: "Hi! I'm HIM, your wellness companion. How are you feeling today? I'm here to listen, comfort, and support you.",
+      created_at: new Date(),
+    },
   ]);
   const [input, setInput] = useState("");
   const [mood, setMood] = useState("neutral");
   const [isTyping, setIsTyping] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [pastSessions, setPastSessions] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     AOS.init({ duration: 600, once: false });
   }, []);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userText = input;
-    const newMsg = { sender: "user", message: userText, created_at: new Date() };
-    setMessages((prev) => [...prev, newMsg]);
-    setInput("");
-    setIsTyping(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText, mood }),
-      });
-      const data = await res.json();
-      
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "ai", message: data.reply, created_at: new Date() },
-      ]);
-    } catch {
-      setIsTyping(false);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "ai", message: "I am always here for you. Take a warm cup of water and rest your mind.", created_at: new Date() },
-      ]);
-    }
-  };
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
   const phaseInfo = {
     name: "Follicular Phase",
@@ -58,103 +39,309 @@ export default function ChatPage() {
     icon: "fa-leaf",
   };
 
+  const handleSend = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    const userMessage: Message = {
+      sender: "user",
+      message: trimmed,
+      created_at: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsTyping(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: trimmed, mood }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "ai",
+            message: data.reply || "I hear you and I'm right here with you. Take a deep breath.",
+            created_at: new Date(),
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            sender: "ai",
+            message: "I am always here for you. Take a warm cup of water and rest your mind.",
+            created_at: new Date(),
+          },
+        ]);
+      }
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: "ai",
+          message: "I'm listening. Take things one gentle step at a time today.",
+          created_at: new Date(),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const speakText = (text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const formatTime = (date: Date | string) => {
+    const d = new Date(date);
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  };
+
+  const moods = [
+    { id: "neutral", label: "Neutral" },
+    { id: "happy", label: "Happy" },
+    { id: "sad", label: "Sad" },
+    { id: "anxious", label: "Anxious" },
+    { id: "angry", label: "Angry" },
+    { id: "tired", label: "Tired" },
+    { id: "calm", label: "Calm" },
+  ];
+
   return (
     <div className="bg-chat">
-      <div className="container" style={{ paddingTop: "20px", paddingBottom: "20px", display: "flex", justifyContent: "center", maxWidth: "100%", height: "calc(100vh - 80px)" }}>
-        
-        <div className="chat-container" data-aos="zoom-in-up" data-aos-duration="600" style={{ background: "rgba(255, 255, 255, 0.5)", backdropFilter: "blur(20px)", border: "1px solid rgba(255, 255, 255, 0.8)", boxShadow: "0 15px 50px rgba(0,0,0,0.1)", borderRadius: "24px", width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-          
+      <div
+        className="container"
+        style={{
+          paddingTop: "20px",
+          paddingBottom: "20px",
+          display: "flex",
+          justifyContent: "center",
+          maxWidth: "100%",
+          height: "calc(100vh - 80px)",
+        }}
+      >
+        <div
+          className="chat-container"
+          data-aos="zoom-in-up"
+          data-aos-duration="600"
+          style={{
+            background: "rgba(255, 255, 255, 0.5)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.8)",
+            boxShadow: "0 15px 50px rgba(0,0,0,0.1)",
+            borderRadius: "24px",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           {/* Chat Header */}
-          <div className="chat-header" style={{ background: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.6)", borderRadius: "24px 24px 0 0", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div className="chat-header-info" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div className="chat-avatar" style={{ width: "42px", height: "42px", borderRadius: "50%", background: "var(--color-primary, #6366f1)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}><i className="fa-solid fa-robot"></i></div>
+          <div
+            className="chat-header"
+            style={{
+              background: "rgba(255,255,255,0.4)",
+              borderBottom: "1px solid rgba(255,255,255,0.6)",
+              borderRadius: "24px 24px 0 0",
+            }}
+          >
+            <div className="chat-header-info">
+              <div className="chat-avatar">
+                <i className="fa-solid fa-robot"></i>
+              </div>
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem" }}>HIM AI Companion</h3>
-                <span className="chat-status" style={{ color: phaseInfo.color, fontSize: "0.85rem" }}>
+                <h3 className="text-reveal">
+                  <span>HIM Chat</span>
+                </h3>
+                <span className="chat-status" style={{ color: phaseInfo.color }}>
                   <i className={`fa-solid ${phaseInfo.icon}`}></i> {phaseInfo.name}
                 </span>
               </div>
             </div>
             <div className="chat-actions">
-              <button className="btn btn-sm btn-outline" onClick={() => setHistoryOpen(!historyOpen)} title="View past chats" style={{ marginRight: "8px" }}>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                id="historyBtn"
+                onClick={() => setHistoryOpen(true)}
+                title="View past chats"
+                style={{ marginRight: "8px" }}
+              >
                 <i className="fa-solid fa-clock-rotate-left"></i> History
               </button>
-              <button className="btn btn-sm btn-outline" title="Start new chat" onClick={() => setMessages([{ sender: "ai", message: "Starting a fresh session! How can I assist you right now?", created_at: new Date() }])}>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                id="newChatBtn"
+                onClick={() =>
+                  setMessages([
+                    {
+                      sender: "ai",
+                      message: "Starting a fresh session! How can I support you right now?",
+                      created_at: new Date(),
+                    },
+                  ])
+                }
+                title="Start new chat"
+              >
                 <i className="fa-solid fa-plus"></i> New Chat
               </button>
             </div>
           </div>
-          
+
           {/* Mood Selector */}
-          <div className="chat-mood-bar" style={{ padding: "12px 24px", background: "rgba(255,255,255,0.2)", borderBottom: "1px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <span className="mood-label" style={{ fontWeight: 600, fontSize: "0.85rem" }}>Current Mood:</span>
-            <div className="mood-options" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              {["neutral", "happy", "sad", "anxious", "angry", "tired", "calm"].map((m) => (
+          <div className="chat-mood-bar" id="moodBar">
+            <span className="mood-label">How are you feeling?</span>
+            <div className="mood-options">
+              {moods.map((m) => (
                 <button
-                  key={m}
+                  key={m.id}
                   type="button"
-                  className={`mood-chip ${mood === m ? "active" : ""}`}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "16px",
-                    border: mood === m ? "2px solid #6366f1" : "1px solid #ccc",
-                    background: mood === m ? "#6366f1" : "transparent",
-                    color: mood === m ? "#fff" : "#333",
-                    cursor: "pointer",
-                    fontSize: "0.8rem",
-                    transition: "all 0.2s"
-                  }}
-                  onClick={() => setMood(m)}
+                  className={`mood-chip ${mood === m.id ? "active" : ""}`}
+                  onClick={() => setMood(m.id)}
                 >
-                  {m.charAt(0).toUpperCase() + m.slice(1)}
+                  {m.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Chat Messages Body */}
-          <div style={{ flex: 1, padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px" }}>
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="typing-indicator" style={{ padding: "10px 24px" }}>
+              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
+              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
+              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div className="chat-messages" id="chatMessages">
             {messages.map((msg, idx) => (
-              <div
-                key={idx}
-                style={{
-                  alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
-                  maxWidth: "75%",
-                  padding: "12px 18px",
-                  borderRadius: msg.sender === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                  background: msg.sender === "user" ? "#6366f1" : "rgba(255, 255, 255, 0.9)",
-                  color: msg.sender === "user" ? "#ffffff" : "#1f2937",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                  lineHeight: "1.5",
-                  fontSize: "0.95rem"
-                }}
-              >
-                {msg.message}
+              <div key={idx} className={`chat-bubble chat-bubble-${msg.sender}`}>
+                <div className="bubble-content">{msg.message}</div>
+                <span className="bubble-time">{formatTime(msg.created_at)}</span>
+                {msg.sender === "ai" && (
+                  <button
+                    type="button"
+                    className="tts-btn"
+                    title="Read aloud"
+                    onClick={() => speakText(msg.message)}
+                  >
+                    <i className="fa-solid fa-volume-up"></i>
+                  </button>
+                )}
               </div>
             ))}
-            {isTyping && (
-              <div style={{ alignSelf: "flex-start", padding: "8px 16px", background: "rgba(255,255,255,0.8)", borderRadius: "16px" }}>
-                <em>HIM is typing...</em>
-              </div>
-            )}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Chat Input Form */}
-          <form onSubmit={handleSend} style={{ padding: "16px 24px", background: "rgba(255,255,255,0.4)", borderTop: "1px solid rgba(255,255,255,0.6)", borderRadius: "0 0 24px 24px", display: "flex", gap: "12px" }}>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask HIM anything or share your thoughts..."
-              style={{ flex: 1, padding: "12px 18px", borderRadius: "24px", border: "1px solid #ccc", outline: "none", fontSize: "0.95rem" }}
-            />
-            <button type="submit" className="btn btn-primary" style={{ padding: "12px 24px", borderRadius: "24px" }}>
-              <i className="fa-solid fa-paper-plane"></i> Send
-            </button>
-          </form>
-
+          {/* Input */}
+          <div
+            className="chat-input-area"
+            style={{
+              background: "rgba(255,255,255,0.4)",
+              borderTop: "1px solid rgba(255,255,255,0.6)",
+              borderRadius: "0 0 24px 24px",
+            }}
+          >
+            <form id="chatForm" onSubmit={handleSend} autoComplete="off">
+              <div className="chat-input-wrapper">
+                <textarea
+                  className="chat-input"
+                  id="chatInput"
+                  placeholder="Type a message..."
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                ></textarea>
+                <button
+                  type="button"
+                  className="chat-send-btn"
+                  id="chatMicBtn"
+                  style={{
+                    background: "white",
+                    color: "var(--color-primary)",
+                    border: "2px solid var(--border-light)",
+                    marginRight: "2px",
+                  }}
+                  title="Voice Call"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.location.href = "/voice";
+                    }
+                  }}
+                >
+                  <i className="fa-solid fa-microphone" id="chatMicIcon"></i>
+                </button>
+                <button
+                  type="submit"
+                  className="chat-send-btn"
+                  id="sendBtn"
+                  aria-label="Send message"
+                  disabled={!input.trim()}
+                >
+                  <i className="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
+
+      {/* Chat History Modal */}
+      {historyOpen && (
+        <div className="modal-overlay" style={{ display: "flex" }}>
+          <div className="modal-content history-modal-content">
+            <div className="modal-header">
+              <h3>
+                <i className="fa-solid fa-clock-rotate-left"></i> Chat History
+              </h3>
+              <button
+                type="button"
+                className="close-modal"
+                id="closeHistoryBtn"
+                onClick={() => setHistoryOpen(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="modal-body" id="historyList">
+              <div className="session-list">
+                <div className="session-item active-session">
+                  <div className="session-item-header">
+                    <span className="session-title">Current Conversation</span>
+                    <span className="session-date">Today</span>
+                  </div>
+                  <div className="session-item-footer">
+                    <span className="session-phase">Follicular Phase</span>
+                    <span className="session-status active">Active</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

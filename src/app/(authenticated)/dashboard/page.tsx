@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import QuickMoodSelector from "@/components/QuickMoodSelector";
 
 export default async function Dashboard() {
   const session = await getSession();
@@ -44,7 +45,18 @@ export default async function Dashboard() {
     body: "Drinking enough water helps reduce bloating and keeps your energy up during this phase."
   };
 
-  const todayMood = null;
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const { data: moodData } = await supabase
+    .from("mood_logs")
+    .select("mood")
+    .eq("user_id", userId)
+    .gte("log_date", todayStart.toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const todayMood = moodData?.mood || null;
 
   return (
     <div className="container">
@@ -116,7 +128,7 @@ export default async function Dashboard() {
         <div className="card deck-card" data-aos="zoom-in-up" data-aos-duration="600">
           <h3 className="card-title">Quick Actions</h3>
           <div className="quick-actions">
-            <Link href="/cycle-tracker" className="action-btn action-period" data-aos="flip-up" data-aos-delay="100">
+            <Link href="/log-period" className="action-btn action-period" data-aos="flip-up" data-aos-delay="100">
               <i className="fa-solid fa-droplet"></i>
               <span>Log Period</span>
             </Link>
@@ -138,35 +150,7 @@ export default async function Dashboard() {
         {/* Today's Mood */}
         <div className="card deck-card" data-aos="zoom-in-up" data-aos-delay="200" data-aos-duration="600">
           <h3 className="card-title">How are you feeling?</h3>
-          {todayMood ? (
-            <div className="mood-logged">
-              <p>You logged: <strong>{todayMood}</strong> today</p>
-              <Link href="/mood-journal" className="btn btn-sm btn-outline">Update</Link>
-            </div>
-          ) : (
-            <div className="mood-selector" id="quickMoodSelector">
-              {[
-                { id: "happy", label: "Happy" },
-                { id: "sad", label: "Sad" },
-                { id: "anxious", label: "Anxious" },
-                { id: "angry", label: "Angry" },
-                { id: "tired", label: "Tired" },
-                { id: "calm", label: "Calm" },
-                { id: "neutral", label: "Neutral" },
-                { id: "irritated", label: "Irritated" }
-              ].map((mood, i) => (
-                <button
-                  key={mood.id}
-                  className="mood-emoji"
-                  data-aos="zoom-in"
-                  data-aos-delay={i * 50}
-                  style={{ fontSize: "14px", width: "auto", padding: "8px 12px", borderRadius: "12px" }}
-                >
-                  {mood.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <QuickMoodSelector initialMood={todayMood} />
         </div>
 
         {/* Today's Tip */}

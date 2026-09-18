@@ -101,6 +101,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
         <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/dashboard.css" />
+        <link rel="stylesheet" href="/css/tracker.css" />
+        <link rel="stylesheet" href="/css/chat.css" />
         <link rel="stylesheet" href="/css/landing.css" />
         <link rel="stylesheet" href="/css/responsive.css" />
         <JsonLd data={[websiteSchema, softwareApplicationSchema, organizationSchema, faqSchema]} />

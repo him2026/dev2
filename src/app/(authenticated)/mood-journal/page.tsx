@@ -29,25 +29,26 @@ export default function MoodJournal() {
     hopeful: { emoji: '🌟', label: 'Hopeful', color: '#FFEAA7' },
   };
 
-  const moodHistory = [
+  const [moodHistory, setMoodHistory] = useState<any[]>([
     { log_date: '2023-10-01', mood: 'happy,excited', intensity: 8, notes: 'Feeling great today!', cycle_phase: 'follicular' },
     { log_date: '2023-10-02', mood: 'calm', intensity: 6, notes: 'A relaxing day.', cycle_phase: 'follicular' },
     { log_date: '2023-10-03', mood: 'tired,sad', intensity: 4, notes: 'Didn\'t sleep well.', cycle_phase: 'luteal' },
     { log_date: '2023-10-04', mood: 'anxious', intensity: 7, notes: 'Work is stressful.', cycle_phase: 'luteal' },
     { log_date: '2023-10-05', mood: 'happy', intensity: 9, notes: 'Had a nice dinner.', cycle_phase: 'menstrual' },
-  ];
+  ]);
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  useEffect(() => {
-    AOS.init({ duration: 600, once: false });
-
-    const chartDates = moodHistory.map(entry => new Date(entry.log_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).reverse();
-    const chartIntensities = moodHistory.map(entry => entry.intensity).reverse();
+  const updateChart = (logs: any[]) => {
+    const chartDates = logs.map(entry => new Date(entry.log_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })).reverse();
+    const chartIntensities = logs.map(entry => entry.intensity).reverse();
 
     if (chartRef.current) {
       if (chartInstance.current) {
         chartInstance.current.destroy();
       }
-      
+
       const ctx = chartRef.current.getContext('2d');
       if (ctx) {
         const gradient = ctx.createLinearGradient(0, 0, 0, 200);
@@ -95,7 +96,67 @@ export default function MoodJournal() {
         });
       }
     }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch("/api/mood/log");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.logs && data.logs.length > 0) {
+          setMoodHistory(data.logs);
+          updateChart(data.logs);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch mood history:", e);
+    }
+    updateChart(moodHistory);
+  };
+
+  useEffect(() => {
+    AOS.init({ duration: 600, once: false });
+    fetchHistory();
   }, []);
+
+  const handleSaveMood = async () => {
+    if (selectedMoods.length === 0) {
+      setErrorMsg("Please pick 1 to 3 moods first.");
+      setTimeout(() => setErrorMsg(""), 3000);
+      return;
+    }
+
+    setSaving(true);
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/mood/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mood: selectedMoods,
+          intensity,
+          notes,
+          cycle_phase: "Follicular Phase",
+        }),
+      });
+
+      if (res.ok) {
+        setSuccessMsg("Mood saved to your journal! ✨");
+        setTimeout(() => setSuccessMsg(""), 3500);
+        setSelectedMoods([]);
+        setNotes("");
+        fetchHistory();
+      } else {
+        const err = await res.json();
+        setErrorMsg(err.error || "Failed to save mood.");
+      }
+    } catch {
+      setErrorMsg("Failed to save mood. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const toggleMood = (moodKey: string) => {
     if (selectedMoods.includes(moodKey)) {
@@ -195,8 +256,28 @@ export default function MoodJournal() {
               <textarea className="form-textarea" id="journalNotes" placeholder="Write about your day..." value={notes} onChange={(e) => setNotes(e.target.value)}></textarea>
             </div>
 
-            <button className="btn btn-primary" id="saveMoodBtn" style={{ width: "100%" }}>
-              <i className="fa-solid fa-check"></i> Save Mood
+            {errorMsg && (
+              <div className="flash-message flash-error" style={{ margin: "0 0 16px" }}>
+                <i className="fa-solid fa-exclamation-circle"></i>
+                <span>{errorMsg}</span>
+              </div>
+            )}
+            {successMsg && (
+              <div className="flash-message flash-success" style={{ margin: "0 0 16px" }}>
+                <i className="fa-solid fa-check-circle"></i>
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              id="saveMoodBtn"
+              style={{ width: "100%" }}
+              disabled={saving}
+              onClick={handleSaveMood}
+            >
+              <i className="fa-solid fa-check"></i> {saving ? "Saving Mood..." : "Save Mood"}
             </button>
           </div>
 

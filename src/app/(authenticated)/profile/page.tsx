@@ -15,26 +15,91 @@ export default function ProfilePage() {
     avg_period_length: 5,
     notification_enabled: true
   });
+
+  const [passwords, setPasswords] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: "",
+  });
   
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     AOS.init({ duration: 600, once: false });
+
+    // Fetch user profile from database
+    const loadProfile = async () => {
+      try {
+        const res = await fetch("/api/profile/update");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.user) {
+            setUser(data.user);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch profile:", err);
+      }
+    };
+
+    loadProfile();
   }, []);
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy update
-    setSuccessMsg("Profile updated!");
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setSaving(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg("Profile saved to database! ✨");
+        setTimeout(() => setSuccessMsg(""), 3500);
+      } else {
+        setErrorMsg(data.error || "Failed to update profile.");
+      }
+    } catch {
+      setErrorMsg("Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Dummy update
-    setSuccessMsg("Password changed successfully!");
-    setTimeout(() => setSuccessMsg(""), 3000);
+    setSaving(true);
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    try {
+      const res = await fetch("/api/profile/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(passwords),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg("Password changed successfully! 🔒");
+        setPasswords({ current_password: "", new_password: "", confirm_password: "" });
+        setTimeout(() => setSuccessMsg(""), 3500);
+      } else {
+        setErrorMsg(data.error || "Failed to change password.");
+      }
+    } catch {
+      setErrorMsg("Failed to change password. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleThemeChange = (name: string) => {
@@ -113,19 +178,42 @@ export default function ProfilePage() {
         <form onSubmit={handleChangePassword}>
           <div className="form-group">
             <label className="form-label">Current Password</label>
-            <input type="password" className="form-input" name="current_password" required />
+            <input
+              type="password"
+              className="form-input"
+              name="current_password"
+              value={passwords.current_password}
+              onChange={(e) => setPasswords({ ...passwords, current_password: e.target.value })}
+              required
+            />
           </div>
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">New Password</label>
-              <input type="password" className="form-input" name="new_password" required />
+              <input
+                type="password"
+                className="form-input"
+                name="new_password"
+                value={passwords.new_password}
+                onChange={(e) => setPasswords({ ...passwords, new_password: e.target.value })}
+                required
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Confirm New Password</label>
-              <input type="password" className="form-input" name="confirm_password" required />
+              <input
+                type="password"
+                className="form-input"
+                name="confirm_password"
+                value={passwords.confirm_password}
+                onChange={(e) => setPasswords({ ...passwords, confirm_password: e.target.value })}
+                required
+              />
             </div>
           </div>
-          <button type="submit" className="btn btn-secondary"><i className="fa-solid fa-key"></i> Change Password</button>
+          <button type="submit" className="btn btn-secondary" disabled={saving}>
+            <i className="fa-solid fa-key"></i> {saving ? "Updating..." : "Change Password"}
+          </button>
         </form>
       </div>
       
