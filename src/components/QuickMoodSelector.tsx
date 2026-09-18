@@ -8,14 +8,14 @@ interface QuickMoodSelectorProps {
 }
 
 const MOODS = [
-  { id: "happy", label: "Happy" },
-  { id: "sad", label: "Sad" },
-  { id: "anxious", label: "Anxious" },
-  { id: "angry", label: "Angry" },
-  { id: "tired", label: "Tired" },
-  { id: "calm", label: "Calm" },
-  { id: "neutral", label: "Neutral" },
-  { id: "irritated", label: "Irritated" },
+  { id: "happy", emoji: "😊", label: "Happy", color: "#10B981" },
+  { id: "calm", emoji: "😌", label: "Calm", color: "#06B6D4" },
+  { id: "neutral", emoji: "😐", label: "Neutral", color: "#64748B" },
+  { id: "tired", emoji: "😴", label: "Tired", color: "#8B5CF6" },
+  { id: "anxious", emoji: "😰", label: "Anxious", color: "#F59E0B" },
+  { id: "sad", emoji: "🥺", label: "Sad", color: "#3B82F6" },
+  { id: "angry", emoji: "😤", label: "Angry", color: "#EF4444" },
+  { id: "irritated", emoji: "😣", label: "Irritated", color: "#E11D48" },
 ];
 
 export default function QuickMoodSelector({ initialMood }: QuickMoodSelectorProps) {
@@ -42,14 +42,28 @@ export default function QuickMoodSelector({ initialMood }: QuickMoodSelectorProp
   };
 
   if (loggedMood) {
+    const currentMoodObj = MOODS.find((m) => m.id === loggedMood);
     return (
       <div className="mood-logged">
         <p>
-          You logged: <strong>{loggedMood.charAt(0).toUpperCase() + loggedMood.slice(1)}</strong> today ✨
+          You logged:{" "}
+          <strong style={{ color: currentMoodObj?.color || "var(--color-primary)" }}>
+            {currentMoodObj?.emoji} {loggedMood.charAt(0).toUpperCase() + loggedMood.slice(1)}
+          </strong>{" "}
+          today ✨
         </p>
-        <Link href="/mood-journal" className="btn btn-sm btn-outline">
-          Update in Journal
-        </Link>
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "10px" }}>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => setLoggedMood(null)}
+          >
+            Change Mood
+          </button>
+          <Link href="/mood-journal" className="btn btn-sm btn-primary">
+            Open Journal &rarr;
+          </Link>
+        </div>
       </div>
     );
   }
@@ -62,18 +76,13 @@ export default function QuickMoodSelector({ initialMood }: QuickMoodSelectorProp
           type="button"
           disabled={loading}
           onClick={() => handleQuickLog(mood.id)}
-          className="mood-emoji"
+          className="mood-chip-btn"
           data-aos="zoom-in"
-          data-aos-delay={i * 50}
-          style={{
-            fontSize: "14px",
-            width: "auto",
-            padding: "8px 12px",
-            borderRadius: "12px",
-            cursor: "pointer",
-          }}
+          data-aos-delay={i * 30}
+          title={`Log mood: ${mood.label}`}
         >
-          {mood.label}
+          <span className="mood-chip-emoji">{mood.emoji}</span>
+          <span className="mood-chip-label">{mood.label}</span>
         </button>
       ))}
     </div>

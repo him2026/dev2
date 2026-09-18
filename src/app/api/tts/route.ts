@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         },
       });
     } else {
-      // Cloud NVIDIA NIM API
+      // Cloud NVIDIA NIM API with 2-second timeout
       const response = await fetch(nimHttpUrl, {
         method: "POST",
         headers: {
@@ -96,6 +96,7 @@ export async function POST(req: Request) {
           voice_name: voiceName,
           emotion_exaggeration: emotion,
         }),
+        signal: AbortSignal.timeout(2000),
       });
 
       if (!response.ok) {

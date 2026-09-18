@@ -12,6 +12,7 @@ export default function Header() {
   const [themePanelOpen, setThemePanelOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [allPagesOpen, setAllPagesOpen] = useState(false);
 
   const notifCount = 0;
 
@@ -31,6 +32,18 @@ export default function Header() {
     setThemePanelOpen(false);
   };
 
+  const toggleSidebar = () => {
+    const sidebarMenu = document.getElementById("sidebarMenu");
+    const sidebarOverlay = document.getElementById("sidebarOverlay");
+    if (sidebarMenu?.classList.contains("open") || sidebarMenu?.classList.contains("active")) {
+      sidebarMenu.classList.remove("open", "active");
+      sidebarOverlay?.classList.remove("show", "active");
+    } else {
+      sidebarMenu?.classList.add("open", "active");
+      sidebarOverlay?.classList.add("show", "active");
+    }
+  };
+
   return (
     <>
       <div className="lang-topbar" id="langTopbar">
@@ -45,15 +58,301 @@ export default function Header() {
 
       <header className="header" id="header">
         <div className="header-inner">
+          {/* Header Left: Toggle Button + Logo */}
           <div className="header-left">
-            <button className="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-              <i className="fa-solid fa-bars"></i>
+            <button
+              className="sidebar-toggle"
+              id="sidebarToggle"
+              aria-label="Open navigation menu"
+              onClick={toggleSidebar}
+              title="All Pages Menu"
+            >
+              <i className="fa-solid fa-bars-staggered"></i>
+              <span className="sidebar-toggle-text">Pages</span>
             </button>
+
+            <Link href="/dashboard" className="logo" aria-label="HIM Dashboard">
+              <span className="logo-icon">
+                <i className="fa-solid fa-heart"></i>
+              </span>
+              <span className="logo-text">HIM</span>
+            </Link>
           </div>
 
+          {/* Header Center: Desktop Navigation Tabs */}
+          <nav className="header-nav-tabs" aria-label="Header tab navigation">
+            <Link
+              href="/dashboard"
+              className={`nav-tab-btn ${pathname === "/dashboard" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-house"></i>
+              <span>Dashboard</span>
+            </Link>
+
+            {/* Flagship Voice Tab */}
+            <Link
+              href="/voice"
+              className={`nav-tab-btn nav-tab-voice ${pathname === "/voice" ? "active" : ""}`}
+            >
+              <span className="live-dot-pulse"></span>
+              <i className="fa-solid fa-microphone-lines"></i>
+              <span>Voice</span>
+              <span className="nav-badge-live">LIVE</span>
+            </Link>
+
+            {/* Flagship Chat Tab */}
+            <Link
+              href="/chat"
+              className={`nav-tab-btn nav-tab-chat ${pathname === "/chat" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-sparkles"></i>
+              <span>AI Chat</span>
+              <span className="nav-badge-ai">AI</span>
+            </Link>
+
+            <Link
+              href="/cycle-tracker"
+              className={`nav-tab-btn ${pathname === "/cycle-tracker" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-calendar-days"></i>
+              <span>Cycle</span>
+            </Link>
+
+            <Link
+              href="/mood-journal"
+              className={`nav-tab-btn ${pathname === "/mood-journal" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-face-smile"></i>
+              <span>Mood</span>
+            </Link>
+
+            <Link
+              href="/wellness"
+              className={`nav-tab-btn ${pathname === "/wellness" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-spa"></i>
+              <span>Wellness</span>
+            </Link>
+
+            <Link
+              href="/audiobooks"
+              className={`nav-tab-btn ${pathname === "/audiobooks" ? "active" : ""}`}
+            >
+              <i className="fa-solid fa-headphones"></i>
+              <span>Audio</span>
+            </Link>
+
+            {/* All Pages Mega Dropdown Trigger */}
+            <div className="all-pages-dropdown-wrapper">
+              <button
+                type="button"
+                className={`nav-tab-btn nav-tab-more ${allPagesOpen ? "active" : ""}`}
+                onClick={() => setAllPagesOpen(!allPagesOpen)}
+                aria-label="All 13+ pages"
+              >
+                <i className="fa-solid fa-table-cells-large"></i>
+                <span>All Pages</span>
+                <i className="fa-solid fa-chevron-down" style={{ fontSize: "10px", marginLeft: "2px" }}></i>
+              </button>
+
+              {allPagesOpen && (
+                <div className="all-pages-dropdown-menu">
+                  <div className="dropdown-header">
+                    <h4>
+                      <i className="fa-solid fa-compass"></i> All HIM Pages (13+)
+                    </h4>
+                    <button
+                      type="button"
+                      className="dropdown-close-btn"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div className="dropdown-grid">
+                    <Link
+                      href="/voice"
+                      className="dropdown-item item-highlight"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-microphone-lines" style={{ color: "#10B981" }}></i>
+                      <div>
+                        <strong>Voice Assistant</strong>
+                        <small>Voice calls &amp; guidance</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/chat"
+                      className="dropdown-item item-highlight"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-comments" style={{ color: "#EC4899" }}></i>
+                      <div>
+                        <strong>HIM AI Chat</strong>
+                        <small>Empathetic 24/7 AI</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/dashboard"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-house" style={{ color: "var(--color-primary)" }}></i>
+                      <div>
+                        <strong>Dashboard</strong>
+                        <small>Overview &amp; quick stats</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/cycle-tracker"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-calendar-days" style={{ color: "#F43F5E" }}></i>
+                      <div>
+                        <strong>Cycle Tracker</strong>
+                        <small>Period calendar &amp; phase</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/log-period"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-droplet" style={{ color: "#EF4444" }}></i>
+                      <div>
+                        <strong>Log Period</strong>
+                        <small>Flow &amp; symptom check-in</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/mood-journal"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-face-smile" style={{ color: "#F59E0B" }}></i>
+                      <div>
+                        <strong>Mood Journal</strong>
+                        <small>Daily reflections &amp; trends</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/wellness"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-spa" style={{ color: "#14B8A6" }}></i>
+                      <div>
+                        <strong>Wellness Hub</strong>
+                        <small>Self-care &amp; breathing</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/audiobooks"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-headphones" style={{ color: "#6366F1" }}></i>
+                      <div>
+                        <strong>Audiobooks</strong>
+                        <small>Calming sleep stories</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/partner-mode"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-user-group" style={{ color: "#E11D48" }}></i>
+                      <div>
+                        <strong>Partner Sharing</strong>
+                        <small>Sync cycle with partner</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/reports"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-file-medical" style={{ color: "#0284C7" }}></i>
+                      <div>
+                        <strong>Health Reports</strong>
+                        <small>Export doctor summaries</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/community"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-users-line" style={{ color: "#8B5CF6" }}></i>
+                      <div>
+                        <strong>Community Forum</strong>
+                        <small>Anonymous sisterhood</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/games"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-gamepad" style={{ color: "#D97706" }}></i>
+                      <div>
+                        <strong>Challenges &amp; Games</strong>
+                        <small>Daily streaks &amp; points</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/insights"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-chart-line" style={{ color: "#059669" }}></i>
+                      <div>
+                        <strong>Data Insights</strong>
+                        <small>Hormonal &amp; mood analysis</small>
+                      </div>
+                    </Link>
+
+                    <Link
+                      href="/profile"
+                      className="dropdown-item"
+                      onClick={() => setAllPagesOpen(false)}
+                    >
+                      <i className="fa-solid fa-user-gear" style={{ color: "#475569" }}></i>
+                      <div>
+                        <strong>Profile &amp; Settings</strong>
+                        <small>Themes &amp; preferences</small>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </nav>
+
+          {/* Header Right */}
           <div className="header-right">
-            {/* Voice Call Button */}
-            <Link href="/voice" className="call-header-btn" id="callHeaderBtn" aria-label="Call HIM" title="Call HIM">
+            {/* Direct Voice Quick-Call Button */}
+            <Link
+              href="/voice"
+              className="call-header-btn"
+              id="callHeaderBtn"
+              aria-label="Call HIM Voice Assistant"
+              title="Call HIM Voice Assistant"
+            >
               <i className="fa-solid fa-phone"></i>
             </Link>
 
@@ -76,7 +375,9 @@ export default function Header() {
                 style={{ display: themePanelOpen ? "block" : "none" }}
               >
                 <div className="tp-header">
-                  <h4><i className="fa-solid fa-palette"></i> App Theme</h4>
+                  <h4>
+                    <i className="fa-solid fa-palette"></i> App Theme
+                  </h4>
                   <Link href="/profile#theme-section" onClick={() => setThemePanelOpen(false)}>
                     All themes &rarr;
                   </Link>
@@ -102,7 +403,10 @@ export default function Header() {
                       onClick={() => handleThemeSelect(t.id)}
                       title={t.name}
                     >
-                      <span className="tp-circle" style={{ background: `linear-gradient(135deg,${t.colors})` }}></span>
+                      <span
+                        className="tp-circle"
+                        style={{ background: `linear-gradient(135deg,${t.colors})` }}
+                      ></span>
                       <span className="tp-name">{t.name}</span>
                     </button>
                   ))}
@@ -123,7 +427,10 @@ export default function Header() {
                       onClick={() => handleThemeSelect(t.id)}
                       title={t.name}
                     >
-                      <span className="tp-circle" style={{ background: `linear-gradient(135deg,${t.colors})` }}></span>
+                      <span
+                        className="tp-circle"
+                        style={{ background: `linear-gradient(135deg,${t.colors})` }}
+                      ></span>
                       <span className="tp-name">{t.name}</span>
                     </button>
                   ))}
@@ -137,7 +444,10 @@ export default function Header() {
                 <i className="fa-solid fa-bell"></i>
                 {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
               </button>
-              <div className={`notif-dropdown ${notifOpen ? "open" : ""}`} style={{ display: notifOpen ? "block" : "none" }}>
+              <div
+                className={`notif-dropdown ${notifOpen ? "open" : ""}`}
+                style={{ display: notifOpen ? "block" : "none" }}
+              >
                 <div className="notif-header">
                   <h4>Notifications</h4>
                   <a href="#">Mark all read</a>
@@ -155,7 +465,10 @@ export default function Header() {
                 <span className="profile-name">User</span>
                 <i className="fa-solid fa-chevron-down"></i>
               </button>
-              <div className="profile-dropdown" style={{ display: profileOpen ? "block" : "none" }}>
+              <div
+                className="profile-dropdown"
+                style={{ display: profileOpen ? "block" : "none" }}
+              >
                 <Link href="/profile" onClick={() => setProfileOpen(false)}>
                   <i className="fa-solid fa-user"></i> Profile
                 </Link>

@@ -104,7 +104,10 @@ export default function Login() {
               <label className="form-check">
                 <input type="checkbox" name="remember" /> Remember me
               </label>
-              <Link href="/forgot-password" style={{ fontSize: "14px", color: "var(--color-primary)", fontWeight: 500 }}>
+              <Link
+                href={email ? `/forgot-password?email=${encodeURIComponent(email)}` : "/forgot-password"}
+                style={{ fontSize: "14px", color: "var(--color-primary)", fontWeight: 500 }}
+              >
                 Forgot password?
               </Link>
             </div>

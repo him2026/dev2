@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import AOS from "aos";
 import Link from "next/link";
 
-// All 23 supported languages from Chatterbox Multilingual
+// All 23 supported languages
 const LANGUAGES = [
   { code: "en-US", label: "English", flag: "🇺🇸" },
   { code: "hi-IN", label: "हिन्दी", flag: "🇮🇳" },
@@ -18,38 +18,33 @@ const LANGUAGES = [
   { code: "zh-CN", label: "中文", flag: "🇨🇳" },
   { code: "ar-XA", label: "العربية", flag: "🇸🇦" },
   { code: "ru-RU", label: "Русский", flag: "🇷🇺" },
-  { code: "pl-PL", label: "Polski", flag: "🇵🇱" },
-  { code: "nl-NL", label: "Nederlands", flag: "🇳🇱" },
-  { code: "sv-SE", label: "Svenska", flag: "🇸🇪" },
-  { code: "tr-TR", label: "Türkçe", flag: "🇹🇷" },
-  { code: "da-DK", label: "Dansk", flag: "🇩🇰" },
-  { code: "fi-FI", label: "Suomi", flag: "🇫🇮" },
-  { code: "nb-NO", label: "Norsk", flag: "🇳🇴" },
-  { code: "uk-UA", label: "Українська", flag: "🇺🇦" },
-  { code: "el-GR", label: "Ελληνικά", flag: "🇬🇷" },
-  { code: "cs-CZ", label: "Čeština", flag: "🇨🇿" },
-  { code: "ro-RO", label: "Română", flag: "🇷🇴" },
+];
+
+const VOICE_SAMPLE_PROMPTS = [
+  "How is my cycle today?",
+  "What phase am I in?",
+  "I have mild cramps",
+  "Comfort me, I feel overwhelmed",
+  "Give me an affirmation",
 ];
 
 export default function VoiceAssistantPage() {
   const [isListening, setIsListening] = useState(false);
-  const [micStatus, setMicStatus] = useState("Tap to speak");
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [micStatus, setMicStatus] = useState("Tap the microphone or choose a question below");
   const [breathingActive, setBreathingActive] = useState(false);
   const [breatheText, setBreatheText] = useState("Breathe In");
   const [breatheInstr, setBreatheInstr] = useState("Inhale for 4 seconds...");
   const [selectedLang, setSelectedLang] = useState("en-US");
   const [voiceGender, setVoiceGender] = useState<"male" | "female">("female");
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [lastUserSpeech, setLastUserSpeech] = useState<string>("");
+  const [lastAiResponse, setLastAiResponse] = useState<string>("");
+  const [manualText, setManualText] = useState("");
 
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const breathingIntervalRef = useRef<any>(null);
-
-  const phaseInfo = {
-    name: "Follicular Phase",
-    color: "#10B981",
-    icon: "fa-leaf",
-  };
 
   const currentLang = LANGUAGES.find((l) => l.code === selectedLang) || LANGUAGES[0];
 
@@ -73,13 +68,14 @@ export default function VoiceAssistantPage() {
 
         recognition.onresult = async (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setMicStatus(`"${transcript}"`);
+          setLastUserSpeech(transcript);
+          setMicStatus(`Heard: "${transcript}"`);
           await processVoiceInput(transcript);
         };
 
         recognition.onerror = (event: any) => {
-          console.error("Speech Recognition Error:", event.error);
-          setMicStatus("Didn't catch that. Tap again.");
+          console.warn("Speech Recognition Info:", event.error);
+          setMicStatus("Tap to speak or click a prompt below");
           setIsListening(false);
         };
 
@@ -101,7 +97,6 @@ export default function VoiceAssistantPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Update recognition language when user changes it
   useEffect(() => {
     if (recognitionRef.current) {
       recognitionRef.current.lang = selectedLang;
@@ -110,9 +105,11 @@ export default function VoiceAssistantPage() {
 
   const processVoiceInput = async (userInput: string) => {
     try {
-      setMicStatus("Thinking & generating response...");
+      setLastUserSpeech(userInput);
+      setMicStatus("HIM is thinking...");
+      setIsSpeaking(false);
 
-      // 1. Get context-aware AI response
+      // 1. Get context-aware AI response from /api/chat
       const chatRes = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,47 +117,57 @@ export default function VoiceAssistantPage() {
       });
       const chatData = await chatRes.json();
       const aiReply =
-        chatData.reply || "I am here with you. How can I support your wellness today?";
+        chatData.reply || "I am right here with you, love. Take a gentle breath—how is your body feeling right now?";
 
-      setMicStatus("Generating voice with NVIDIA Chatterbox...");
+      setLastAiResponse(aiReply);
+      setMicStatus("HIM is speaking...");
+      setIsSpeaking(true);
 
-      // 2. Synthesize audio via NVIDIA NIM Chatterbox Multilingual
-      const ttsRes = await fetch("/api/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: aiReply,
-          language: selectedLang,
-          emotion: 0.5,
-          voice: voiceGender,
-        }),
-      });
+      // 2. Synthesize audio via TTS or Browser Speech
+      try {
+        const ttsRes = await fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: aiReply,
+            language: selectedLang,
+            emotion: 0.5,
+            voice: voiceGender,
+          }),
+        });
 
-      if (ttsRes.ok && ttsRes.headers.get("Content-Type")?.includes("audio")) {
-        // NVIDIA NIM returned high-fidelity audio
-        const audioBlob = await ttsRes.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
+        if (ttsRes.ok && ttsRes.headers.get("Content-Type")?.includes("audio")) {
+          const audioBlob = await ttsRes.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
 
-        if (audioRef.current) audioRef.current.pause();
+          if (audioRef.current) audioRef.current.pause();
 
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
 
-        audio.onplay = () => setMicStatus("HIM is speaking (NVIDIA Chatterbox)...");
-        audio.onended = () => setMicStatus("Tap to speak");
-        audio.onerror = () => {
-          speakText(aiReply);
-          setMicStatus("Tap to speak");
-        };
-        audio.play();
-      } else {
-        // Fallback to browser TTS
-        speakText(aiReply);
-        setMicStatus("Tap to speak");
+          audio.onplay = () => {
+            setIsSpeaking(true);
+            setMicStatus("HIM is speaking...");
+          };
+          audio.onended = () => {
+            setIsSpeaking(false);
+            setMicStatus("Tap to speak again");
+          };
+          audio.onerror = () => {
+            speakText(aiReply);
+          };
+          await audio.play();
+          return;
+        }
+      } catch {
+        // Fallback directly to browser TTS
       }
+
+      speakText(aiReply);
     } catch {
       console.error("Voice Processing Error");
-      setMicStatus("Connection error. Tap to try again.");
+      setMicStatus("Ready. Tap microphone or a prompt below.");
+      setIsSpeaking(false);
     }
   };
 
@@ -177,8 +184,8 @@ export default function VoiceAssistantPage() {
           setMicStatus("Listening...");
         }
       } else {
-        const promptText = prompt("Speak to HIM (Type your message):");
-        if (promptText) processVoiceInput(promptText);
+        // Speech recognition not supported or blocked in browser
+        setMicStatus("Speech recognition unavailable in this browser. Use the input or prompts below!");
       }
     }
   };
@@ -190,7 +197,22 @@ export default function VoiceAssistantPage() {
       utterance.rate = 0.95;
       utterance.pitch = 1.05;
       utterance.lang = selectedLang;
+      utterance.onstart = () => {
+        setIsSpeaking(true);
+        setMicStatus("HIM is speaking...");
+      };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setMicStatus("Tap to speak again");
+      };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setMicStatus("Tap to speak");
+      };
       window.speechSynthesis.speak(utterance);
+    } else {
+      setIsSpeaking(false);
+      setMicStatus("Tap to speak again");
     }
   };
 
@@ -199,7 +221,7 @@ export default function VoiceAssistantPage() {
     let phase = 0;
     const phases = [
       { text: "Breathe In", instr: "Inhale slowly for 4 seconds...", duration: 4000 },
-      { text: "Hold", instr: "Hold your breath for 4 seconds...", duration: 4000 },
+      { text: "Hold", instr: "Hold gently for 4 seconds...", duration: 4000 },
       { text: "Breathe Out", instr: "Exhale slowly for 6 seconds...", duration: 6000 },
     ];
 
@@ -212,7 +234,7 @@ export default function VoiceAssistantPage() {
     };
 
     cycle();
-    speakText("Let's breathe together. Breathe in slowly.");
+    speakText("Let's breathe together, love. Breathe in slowly.");
   };
 
   const stopBreathing = () => {
@@ -224,141 +246,109 @@ export default function VoiceAssistantPage() {
   };
 
   return (
-    <div className="container-md" style={{ paddingTop: "20px" }}>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        .voice-page { text-align: center; padding-bottom: 40px; }
-        .voice-hero { margin-bottom: 24px; }
-        .voice-hero h2 { font-size: 32px; margin-bottom: 8px; }
-        .voice-hero p { color: var(--text-secondary); font-size: 16px; margin-bottom: 12px; }
-
-        .lang-selector-wrap { display: flex; justify-content: center; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; align-items: center; }
-        .lang-dropdown { position: relative; display: inline-block; }
-        .lang-btn {
-          display: flex; align-items: center; gap: 8px;
-          padding: 10px 20px; border-radius: 24px;
-          background: white; border: 1px solid var(--border-light);
-          font-weight: 600; font-size: 14px; color: var(--text-secondary);
-          cursor: pointer; transition: all 0.2s;
-        }
-        .lang-btn:hover { border-color: var(--color-primary); }
-        .lang-btn .flag { font-size: 20px; }
-        .lang-list {
-          position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
-          background: white; border: 1px solid var(--border-light);
-          border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-          padding: 8px 0; z-index: 100; max-height: 320px; overflow-y: auto;
-          width: 240px;
-        }
-        .lang-item {
-          display: flex; align-items: center; gap: 10px;
-          padding: 10px 18px; cursor: pointer; font-size: 14px;
-          transition: background 0.15s;
-        }
-        .lang-item:hover { background: #f3f4f6; }
-        .lang-item.active { background: var(--color-primary); color: white; border-radius: 8px; margin: 0 4px; }
-        .lang-item .flag { font-size: 18px; }
-
-        .gender-toggle { display: flex; border-radius: 24px; overflow: hidden; border: 1px solid var(--border-light); }
-        .gender-btn {
-          padding: 10px 18px; cursor: pointer; font-size: 13px; font-weight: 600;
-          border: none; background: white; color: var(--text-secondary);
-          transition: all 0.2s;
-        }
-        .gender-btn.active { background: var(--color-primary); color: white; }
-
-        .voice-mic-area { position: relative; margin: 40px auto; width: 160px; height: 160px; display:flex; flex-direction:column; align-items:center; }
-        .breathe-ring {
-            position: absolute; width: 160px; height: 160px; border-radius: 50%;
-            border: 3px solid var(--color-primary); opacity: 0; top: 0;
-        }
-        .breathe-ring.active { animation: pulse 2s infinite; opacity: 1; }
-        .mic-btn {
-            width: 100px; height: 100px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-            color: white; font-size: 36px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 30px auto 0; box-shadow: 0 8px 32px rgba(232,86,127,0.3);
-            transition: var(--transition-normal); position: relative; z-index: 1; border: none; cursor: pointer;
-        }
-        .mic-btn:hover { transform: scale(1.05); }
-        .mic-btn.listening { background: var(--color-error); animation: pulse 1.5s infinite; }
-        .mic-status { margin-top: 60px; color: var(--text-muted); font-size: 14px; font-weight: 500; max-width: 300px; }
-
-        .voice-actions { display: flex; gap: 16px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
-        .voice-action-btn {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            padding: 20px 28px; border-radius: var(--border-radius-md);
-            background: white; border: 1px solid var(--border-light);
-            font-weight: 600; font-size: 14px; color: var(--text-secondary);
-            transition: var(--transition-normal); text-decoration: none; cursor: pointer;
-        }
-        .voice-action-btn:hover { border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-2px); }
-        .voice-action-btn i { font-size: 24px; color: var(--color-primary); }
-
-        .breathing-overlay {
-            position: fixed; inset: 0; background: var(--bg-overlay);
-            z-index: 2000; display: flex; align-items: center; justify-content: center;
-        }
-        .breathing-card { background: white; border-radius: 32px; padding: 48px; text-align: center; width: 90%; max-width: 400px; }
-        .breathing-circle {
-            width: 180px; height: 180px; border-radius: 50%; margin: 32px auto;
-            background: linear-gradient(135deg, rgba(232,86,127,0.2), rgba(155,142,192,0.2));
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 18px; color: var(--color-primary);
-            animation: breathe 8s ease-in-out infinite;
-        }
-        .breathing-instruction { color: var(--text-muted); font-size: 15px; }
-      `,
-        }}
-      />
+    <div className="container-md" style={{ paddingTop: "20px", maxWidth: "800px", margin: "0 auto" }}>
       <div className="voice-page" data-aos="zoom-in-up">
         {/* Hero */}
-        <div className="voice-hero">
-          <h2>Voice Assistant</h2>
-          <p>
-            Powered by NVIDIA Chatterbox Multilingual &bull; 23 Languages
-          </p>
-          <span
-            className="badge badge-primary"
-            style={{ background: `${phaseInfo.color}20`, color: phaseInfo.color }}
+        <div className="voice-hero" style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 12px",
+              borderRadius: "20px",
+              background: "rgba(16, 185, 129, 0.15)",
+              color: "#059669",
+              fontSize: "12px",
+              fontWeight: 800,
+              marginBottom: "10px",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+            }}
           >
-            <i className={`fa-solid ${phaseInfo.icon}`}></i> {phaseInfo.name}
-          </span>
+            <span className="live-dot-pulse"></span> LIVE VOICE ASSISTANT
+          </div>
+          <h2 style={{ fontSize: "28px", fontWeight: 800, color: "var(--text-primary)" }}>
+            Hands-Free Voice Companion
+          </h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "15px" }}>
+            Speak naturally with HIM. Context-aware companion for cycle support, PMS comfort, and gentle wellness.
+          </p>
         </div>
 
-        {/* Language & Voice Gender Selector */}
-        <div className="lang-selector-wrap" data-aos="fade-up" data-aos-delay="100">
-          {/* Language Dropdown */}
-          <div className="lang-dropdown">
+        {/* Controls: Language and Gender */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "12px",
+            marginBottom: "24px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {/* Language Selector */}
+          <div style={{ position: "relative" }}>
             <button
-              className="lang-btn"
+              type="button"
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "8px 16px",
+                borderRadius: "20px",
+                background: "var(--bg-card, #ffffff)",
+                border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.2))",
+                fontWeight: 700,
+                fontSize: "13px",
+                color: "var(--text-primary)",
+                cursor: "pointer",
+              }}
             >
-              <span className="flag">{currentLang.flag}</span>
+              <span>{currentLang.flag}</span>
               <span>{currentLang.label}</span>
-              <i
-                className={`fa-solid fa-chevron-${langDropdownOpen ? "up" : "down"}`}
-                style={{ fontSize: "10px" }}
-              ></i>
+              <i className="fa-solid fa-chevron-down" style={{ fontSize: "10px" }}></i>
             </button>
+
             {langDropdownOpen && (
-              <div className="lang-list">
+              <div
+                style={{
+                  position: "absolute",
+                  top: "44px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  background: "var(--bg-card, #ffffff)",
+                  border: "1.5px solid var(--border-light)",
+                  borderRadius: "16px",
+                  boxShadow: "0 12px 36px rgba(0, 0, 0, 0.15)",
+                  padding: "6px 0",
+                  zIndex: 100,
+                  maxHeight: "260px",
+                  overflowY: "auto",
+                  width: "200px",
+                }}
+              >
                 {LANGUAGES.map((lang) => (
                   <div
                     key={lang.code}
-                    className={`lang-item ${selectedLang === lang.code ? "active" : ""}`}
                     onClick={() => {
                       setSelectedLang(lang.code);
                       setLangDropdownOpen(false);
                     }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      background: selectedLang === lang.code ? "var(--color-primary-light)" : "transparent",
+                      color: selectedLang === lang.code ? "var(--color-primary)" : "var(--text-primary)",
+                    }}
                   >
-                    <span className="flag">{lang.flag}</span>
+                    <span>{lang.flag}</span>
                     <span>{lang.label}</span>
-                    <span style={{ marginLeft: "auto", opacity: 0.6, fontSize: 12 }}>
-                      {lang.code}
-                    </span>
                   </div>
                 ))}
               </div>
@@ -366,71 +356,386 @@ export default function VoiceAssistantPage() {
           </div>
 
           {/* Voice Gender Toggle */}
-          <div className="gender-toggle">
+          <div
+            style={{
+              display: "flex",
+              borderRadius: "20px",
+              overflow: "hidden",
+              border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.2))",
+              background: "var(--bg-card, #ffffff)",
+            }}
+          >
             <button
-              className={`gender-btn ${voiceGender === "female" ? "active" : ""}`}
+              type="button"
               onClick={() => setVoiceGender("female")}
+              style={{
+                padding: "8px 16px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: 700,
+                background: voiceGender === "female" ? "var(--color-primary)" : "transparent",
+                color: voiceGender === "female" ? "white" : "var(--text-secondary)",
+                transition: "all 0.2s",
+              }}
             >
-              <i className="fa-solid fa-venus"></i> Female
+              🌸 Soft &amp; Warm
             </button>
             <button
-              className={`gender-btn ${voiceGender === "male" ? "active" : ""}`}
+              type="button"
               onClick={() => setVoiceGender("male")}
+              style={{
+                padding: "8px 16px",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "12px",
+                fontWeight: 700,
+                background: voiceGender === "male" ? "var(--color-primary)" : "transparent",
+                color: voiceGender === "male" ? "white" : "var(--text-secondary)",
+                transition: "all 0.2s",
+              }}
             >
-              <i className="fa-solid fa-mars"></i> Male
+              🌿 Deep &amp; Grounding
             </button>
           </div>
         </div>
 
-        {/* Mic Button */}
-        <div className="voice-mic-area">
+        {/* Central Animated Mic Orb */}
+        <div
+          style={{
+            position: "relative",
+            margin: "20px auto 30px auto",
+            width: "160px",
+            height: "160px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {/* Animated sound wave rings */}
           <div
-            className={`breathe-ring ${isListening ? "active" : ""}`}
-            id="breatheRing"
+            style={{
+              position: "absolute",
+              width: isListening || isSpeaking ? "160px" : "120px",
+              height: isListening || isSpeaking ? "160px" : "120px",
+              borderRadius: "50%",
+              border: "3px solid var(--color-primary)",
+              opacity: isListening || isSpeaking ? 0.8 : 0.2,
+              animation: isListening || isSpeaking ? "livePulsate 1.5s infinite" : "none",
+              transition: "all 0.3s ease",
+            }}
           ></div>
+
           <button
-            className={`mic-btn ${isListening ? "listening" : ""}`}
-            id="micBtn"
-            aria-label="Start listening"
+            type="button"
             onClick={handleMicClick}
+            style={{
+              width: "100px",
+              height: "100px",
+              borderRadius: "50%",
+              background: isListening
+                ? "linear-gradient(135deg, #EF4444, #DC2626)"
+                : "linear-gradient(135deg, #10B981, #059669)",
+              color: "white",
+              fontSize: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: isListening
+                ? "0 8px 32px rgba(239, 68, 68, 0.5)"
+                : "0 8px 32px rgba(16, 185, 129, 0.4)",
+              position: "relative",
+              zIndex: 2,
+              transition: "all 0.25s ease",
+            }}
+            aria-label="Toggle voice recognition"
           >
-            <i
-              className={`fa-solid ${isListening ? "fa-stop" : "fa-microphone"}`}
-              id="micIcon"
-            ></i>
+            <i className={`fa-solid ${isListening ? "fa-microphone-slash" : "fa-microphone"}`}></i>
           </button>
-          <p className="mic-status" id="micStatus">
-            {micStatus}
-          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="voice-actions" data-aos="zoom-in-up" data-aos-delay="200">
-          <button className="voice-action-btn" onClick={startBreathing}>
-            <i className="fa-solid fa-wind"></i>
-            <span>Guided Breathing</span>
-          </button>
-          <Link href="/chat" className="voice-action-btn">
-            <i className="fa-solid fa-comments"></i>
-            <span>Text Chat</span>
-          </Link>
-          <Link href="/wellness" className="voice-action-btn">
-            <i className="fa-solid fa-book-open"></i>
-            <span>Wellness Tips</span>
-          </Link>
-        </div>
+        {/* Live Status Text */}
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "14px",
+            fontWeight: 700,
+            color: isListening ? "#EF4444" : isSpeaking ? "#10B981" : "var(--text-secondary)",
+            marginBottom: "18px",
+          }}
+        >
+          {micStatus}
+        </p>
 
-        {/* Breathing Exercise Modal */}
-        {breathingActive && (
-          <div className="breathing-overlay">
-            <div className="breathing-card">
-              <h3>Breathe With Me</h3>
-              <div className="breathing-circle">
-                <span>{breatheText}</span>
+        {/* Real-Time Live Transcript & Response Bubbles */}
+        {(lastUserSpeech || lastAiResponse) && (
+          <div
+            style={{
+              background: "var(--bg-card, #ffffff)",
+              border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.2))",
+              borderRadius: "20px",
+              padding: "20px",
+              marginBottom: "24px",
+              textAlign: "left",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.04)",
+            }}
+          >
+            {lastUserSpeech && (
+              <div style={{ marginBottom: "14px" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    color: "var(--text-muted)",
+                    display: "block",
+                    marginBottom: "4px",
+                  }}
+                >
+                  You said:
+                </span>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "15px",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    padding: "8px 14px",
+                    borderRadius: "12px",
+                    background: "var(--bg-body, #f8fafc)",
+                  }}
+                >
+                  &ldquo;{lastUserSpeech}&rdquo;
+                </p>
               </div>
-              <p className="breathing-instruction">{breatheInstr}</p>
-              <button className="btn btn-outline mt-3" onClick={stopBreathing}>
-                Stop
+            )}
+
+            {lastAiResponse && (
+              <div>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    color: "#10B981",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  <i className="fa-solid fa-volume-high"></i> HIM Answered:
+                </span>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "15px",
+                    fontWeight: 500,
+                    color: "var(--text-primary)",
+                    lineHeight: 1.55,
+                    padding: "12px 16px",
+                    borderRadius: "14px",
+                    background: "rgba(16, 185, 129, 0.08)",
+                    border: "1px solid rgba(16, 185, 129, 0.2)",
+                  }}
+                >
+                  {lastAiResponse}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick Voice Prompts (Instant Speak) */}
+        <div style={{ marginBottom: "28px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: "var(--text-muted)",
+              display: "block",
+              marginBottom: "10px",
+              textAlign: "center",
+            }}
+          >
+            Tap to Ask &amp; Hear HIM Speak:
+          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
+            {VOICE_SAMPLE_PROMPTS.map((prompt, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => processVoiceInput(prompt)}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.25))",
+                  background: "var(--bg-card, #ffffff)",
+                  color: "var(--text-primary, #1e293b)",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.04)",
+                }}
+              >
+                <i className="fa-solid fa-play" style={{ fontSize: "10px", color: "#10B981", marginRight: "6px" }}></i>
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Type to Speak Input (Accessibility Fallback) */}
+        <div
+          style={{
+            background: "var(--bg-card, #ffffff)",
+            border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.2))",
+            borderRadius: "20px",
+            padding: "16px",
+            marginBottom: "28px",
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (manualText.trim()) {
+                processVoiceInput(manualText);
+                setManualText("");
+              }
+            }}
+            style={{ display: "flex", gap: "10px" }}
+          >
+            <input
+              type="text"
+              placeholder="Or type a question to hear HIM speak it..."
+              value={manualText}
+              onChange={(e) => setManualText(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "10px 16px",
+                borderRadius: "14px",
+                border: "1px solid var(--border-light)",
+                background: "var(--bg-body, #f8fafc)",
+                fontSize: "14px",
+                color: "var(--text-primary)",
+                outline: "none",
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!manualText.trim()}
+              className="btn btn-primary"
+              style={{ borderRadius: "14px", padding: "10px 20px" }}
+            >
+              <i className="fa-solid fa-volume-high"></i> Speak
+            </button>
+          </form>
+        </div>
+
+        {/* Voice Feature Action Cards */}
+        <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={startBreathing}
+            style={{
+              borderRadius: "16px",
+              padding: "12px 20px",
+              fontWeight: 700,
+              fontSize: "14px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <i className="fa-solid fa-wind" style={{ color: "var(--color-primary)" }}></i>
+            Guided Breathing
+          </button>
+
+          <Link
+            href="/chat"
+            className="btn btn-outline"
+            style={{
+              borderRadius: "16px",
+              padding: "12px 20px",
+              fontWeight: 700,
+              fontSize: "14px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              textDecoration: "none",
+            }}
+          >
+            <i className="fa-solid fa-comments" style={{ color: "#EC4899" }}></i>
+            Switch to Chat
+          </Link>
+        </div>
+
+        {/* Guided Breathing Modal */}
+        {breathingActive && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0, 0, 0, 0.6)",
+              backdropFilter: "blur(8px)",
+              zIndex: 10000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px",
+            }}
+          >
+            <div
+              style={{
+                background: "var(--bg-card, #ffffff)",
+                borderRadius: "32px",
+                padding: "36px",
+                textAlign: "center",
+                maxWidth: "380px",
+                width: "100%",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+                border: "2px solid var(--border-light)",
+              }}
+            >
+              <h3 style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px 0" }}>
+                Guided Relaxation Breathing
+              </h3>
+              <div
+                style={{
+                  width: "160px",
+                  height: "160px",
+                  borderRadius: "50%",
+                  margin: "24px auto",
+                  background: "linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(16, 185, 129, 0.2))",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: "20px",
+                  color: "var(--color-primary)",
+                  border: "3px solid var(--color-primary)",
+                  animation: "livePulsate 4s ease-in-out infinite",
+                }}
+              >
+                {breatheText}
+              </div>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: "0 0 20px 0" }}>
+                {breatheInstr}
+              </p>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={stopBreathing}
+                style={{ borderRadius: "14px", padding: "8px 24px" }}
+              >
+                Done
               </button>
             </div>
           </div>

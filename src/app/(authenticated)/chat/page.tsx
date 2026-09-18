@@ -2,13 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import AOS from "aos";
+import Link from "next/link";
 
 interface Message {
-  id?: string;
+  id?: string | number;
   sender: "user" | "ai";
   message: string;
   created_at: Date | string;
 }
+
+const SUGGESTED_PROMPTS = [
+  "How is my cycle today?",
+  "What phase am I in?",
+  "I have mild cramps",
+  "Feeling a bit anxious today",
+  "Give me a calming affirmation",
+];
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -21,53 +30,75 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [mood, setMood] = useState("neutral");
   const [isTyping, setIsTyping] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [pastSessions, setPastSessions] = useState<any[]>([]);
+  const [cycleInfo, setCycleInfo] = useState({
+    phase: "Follicular Phase",
+    day: 7,
+    daysUntil: 14,
+  });
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     AOS.init({ duration: 600, once: false });
+
+    // Load past conversation from Supabase
+    async function loadHistory() {
+      try {
+        const res = await fetch("/api/chat/history");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.messages && data.messages.length > 0) {
+            setMessages(data.messages);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load chat history:", err);
+      }
+    }
+
+    loadHistory();
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const phaseInfo = {
-    name: "Follicular Phase",
-    color: "#10B981",
-    icon: "fa-leaf",
-  };
-
-  const handleSend = async (e?: React.FormEvent) => {
+  const handleSend = async (customText?: string, e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed) return;
+    const textToSend = (customText || input).trim();
+    if (!textToSend) return;
 
     const userMessage: Message = {
       sender: "user",
-      message: trimmed,
+      message: textToSend,
       created_at: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    if (!customText) setInput("");
     setIsTyping(true);
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, mood }),
+        body: JSON.stringify({ message: textToSend, mood }),
       });
 
       if (res.ok) {
         const data = await res.json();
+        if (data.cyclePhase) {
+          setCycleInfo({
+            phase: data.cyclePhase,
+            day: data.cycleDay || 7,
+            daysUntil: data.daysUntil || 14,
+          });
+        }
         setMessages((prev) => [
           ...prev,
           {
             sender: "ai",
-            message: data.reply || "I hear you and I'm right here with you. Take a deep breath.",
+            message: data.reply || "I hear you and I'm right here with you. Take a deep, gentle breath.",
             created_at: new Date(),
           },
         ]);
@@ -86,7 +117,7 @@ export default function ChatPage() {
         ...prev,
         {
           sender: "ai",
-          message: "I'm listening. Take things one gentle step at a time today.",
+          message: "I'm listening, love. Take things one gentle step at a time today.",
           created_at: new Date(),
         },
       ]);
@@ -111,13 +142,13 @@ export default function ChatPage() {
   };
 
   const moods = [
-    { id: "neutral", label: "Neutral" },
-    { id: "happy", label: "Happy" },
-    { id: "sad", label: "Sad" },
-    { id: "anxious", label: "Anxious" },
-    { id: "angry", label: "Angry" },
-    { id: "tired", label: "Tired" },
-    { id: "calm", label: "Calm" },
+    { id: "neutral", label: "Neutral", emoji: "😐" },
+    { id: "happy", label: "Happy", emoji: "😊" },
+    { id: "calm", label: "Calm", emoji: "😌" },
+    { id: "tired", label: "Tired", emoji: "😴" },
+    { id: "anxious", label: "Anxious", emoji: "😰" },
+    { id: "sad", label: "Sad", emoji: "🥺" },
+    { id: "angry", label: "Angry", emoji: "😤" },
   ];
 
   return (
@@ -125,223 +156,357 @@ export default function ChatPage() {
       <div
         className="container"
         style={{
-          paddingTop: "20px",
-          paddingBottom: "20px",
+          paddingTop: "16px",
+          paddingBottom: "24px",
           display: "flex",
-          justifyContent: "center",
-          maxWidth: "100%",
-          height: "calc(100vh - 80px)",
+          flexDirection: "column",
+          minHeight: "calc(100vh - 120px)",
         }}
       >
         <div
-          className="chat-container"
-          data-aos="zoom-in-up"
+          className="chat-card"
+          data-aos="fade-up"
           data-aos-duration="600"
           style={{
-            background: "rgba(255, 255, 255, 0.5)",
-            backdropFilter: "blur(20px)",
-            border: "1px solid rgba(255, 255, 255, 0.8)",
-            boxShadow: "0 15px 50px rgba(0,0,0,0.1)",
-            borderRadius: "24px",
-            width: "100%",
-            height: "100%",
+            flex: 1,
             display: "flex",
             flexDirection: "column",
+            background: "var(--bg-card, #ffffff)",
+            borderRadius: "24px",
+            border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.2))",
+            boxShadow: "0 12px 36px rgba(0, 0, 0, 0.06)",
+            overflow: "hidden",
           }}
         >
           {/* Chat Header */}
           <div
             className="chat-header"
             style={{
-              background: "rgba(255,255,255,0.4)",
-              borderBottom: "1px solid rgba(255,255,255,0.6)",
-              borderRadius: "24px 24px 0 0",
+              padding: "16px 24px",
+              borderBottom: "1px solid var(--border-light, rgba(255, 112, 150, 0.15))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background: "linear-gradient(135deg, rgba(255, 112, 150, 0.06), rgba(177, 156, 217, 0.08))",
             }}
           >
-            <div className="chat-header-info">
-              <div className="chat-avatar">
-                <i className="fa-solid fa-robot"></i>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #EC4899, #8B5CF6)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: "20px",
+                  boxShadow: "0 4px 12px rgba(236, 72, 153, 0.35)",
+                }}
+              >
+                <i className="fa-solid fa-heart"></i>
               </div>
               <div>
-                <h3 className="text-reveal">
-                  <span>HIM Chat</span>
+                <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 800, color: "var(--text-primary)" }}>
+                  HIM AI Companion
                 </h3>
-                <span className="chat-status" style={{ color: phaseInfo.color }}>
-                  <i className={`fa-solid ${phaseInfo.icon}`}></i> {phaseInfo.name}
+                <span style={{ fontSize: "12px", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: "#10B981",
+                      display: "inline-block",
+                    }}
+                  ></span>
+                  Context-Aware • {cycleInfo.phase} (Day {cycleInfo.day})
                 </span>
               </div>
             </div>
-            <div className="chat-actions">
-              <button
-                type="button"
-                className="btn btn-sm btn-outline"
-                id="historyBtn"
-                onClick={() => setHistoryOpen(true)}
-                title="View past chats"
-                style={{ marginRight: "8px" }}
+
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              <Link
+                href="/voice"
+                className="btn btn-sm"
+                style={{
+                  background: "linear-gradient(135deg, #10B981, #059669)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "20px",
+                  padding: "6px 14px",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  textDecoration: "none",
+                }}
               >
-                <i className="fa-solid fa-clock-rotate-left"></i> History
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline"
-                id="newChatBtn"
-                onClick={() =>
-                  setMessages([
-                    {
-                      sender: "ai",
-                      message: "Starting a fresh session! How can I support you right now?",
-                      created_at: new Date(),
-                    },
-                  ])
-                }
-                title="Start new chat"
-              >
-                <i className="fa-solid fa-plus"></i> New Chat
-              </button>
+                <i className="fa-solid fa-microphone-lines"></i> Switch to Voice
+              </Link>
             </div>
           </div>
 
-          {/* Mood Selector */}
-          <div className="chat-mood-bar" id="moodBar">
-            <span className="mood-label">How are you feeling?</span>
-            <div className="mood-options">
+          {/* Mood Filter Pill Strip */}
+          <div
+            style={{
+              padding: "10px 20px",
+              background: "var(--bg-body, #f8fafc)",
+              borderBottom: "1px solid var(--border-light, rgba(255, 112, 150, 0.1))",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              overflowX: "auto",
+            }}
+          >
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              Mood Context:
+            </span>
+            <div style={{ display: "flex", gap: "6px" }}>
               {moods.map((m) => (
                 <button
                   key={m.id}
                   type="button"
-                  className={`mood-chip ${mood === m.id ? "active" : ""}`}
                   onClick={() => setMood(m.id)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "16px",
+                    border: mood === m.id ? "1.5px solid var(--color-primary)" : "1px solid var(--border-light)",
+                    background: mood === m.id ? "var(--color-primary)" : "var(--bg-card, #ffffff)",
+                    color: mood === m.id ? "white" : "var(--text-secondary)",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "all 0.2s ease",
+                  }}
                 >
-                  {m.label}
+                  {m.emoji} {m.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="typing-indicator" style={{ padding: "10px 24px" }}>
-              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
-              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
-              <span className="typing-dot" style={{ background: "var(--color-primary)" }}></span>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="chat-messages" id="chatMessages">
+          {/* Messages Area */}
+          <div
+            className="chat-messages"
+            id="chatMessages"
+            style={{
+              flex: 1,
+              padding: "20px",
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+              gap: "14px",
+              maxHeight: "calc(100vh - 360px)",
+              minHeight: "360px",
+            }}
+          >
             {messages.map((msg, idx) => (
-              <div key={idx} className={`chat-bubble chat-bubble-${msg.sender}`}>
-                <div className="bubble-content">{msg.message}</div>
-                <span className="bubble-time">{formatTime(msg.created_at)}</span>
-                {msg.sender === "ai" && (
-                  <button
-                    type="button"
-                    className="tts-btn"
-                    title="Read aloud"
-                    onClick={() => speakText(msg.message)}
-                  >
-                    <i className="fa-solid fa-volume-up"></i>
-                  </button>
-                )}
+              <div
+                key={idx}
+                className={`chat-bubble chat-bubble-${msg.sender}`}
+                style={{
+                  maxWidth: "75%",
+                  alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                }}
+              >
+                <div
+                  className="bubble-content"
+                  style={{
+                    padding: "14px 18px",
+                    borderRadius: msg.sender === "user" ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                    background:
+                      msg.sender === "user"
+                        ? "linear-gradient(135deg, #EC4899, #8B5CF6)"
+                        : "var(--bg-body, #f1f5f9)",
+                    color: msg.sender === "user" ? "#ffffff" : "var(--text-primary, #1e293b)",
+                    fontSize: "14px",
+                    lineHeight: 1.55,
+                    fontWeight: 500,
+                    border: msg.sender === "user" ? "none" : "1px solid var(--border-light)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                  }}
+                >
+                  {msg.message}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    alignSelf: msg.sender === "user" ? "flex-end" : "flex-start",
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    padding: "0 4px",
+                  }}
+                >
+                  <span>{formatTime(msg.created_at)}</span>
+                  {msg.sender === "ai" && (
+                    <button
+                      type="button"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
+                        cursor: "pointer",
+                        padding: "2px 4px",
+                        fontSize: "12px",
+                      }}
+                      title="Read aloud"
+                      onClick={() => speakText(msg.message)}
+                    >
+                      <i className="fa-solid fa-volume-high"></i>
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
+
+            {/* Typing Indicator inside message list */}
+            {isTyping && (
+              <div
+                style={{
+                  alignSelf: "flex-start",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "10px 16px",
+                  borderRadius: "18px",
+                  background: "var(--bg-body, #f1f5f9)",
+                  border: "1px solid var(--border-light)",
+                  width: "fit-content",
+                }}
+              >
+                <span className="live-dot-pulse" style={{ width: "7px", height: "7px" }}></span>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--color-primary)" }}>
+                  HIM is thinking...
+                </span>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
+          {/* Quick Prompts Strip */}
           <div
-            className="chat-input-area"
             style={{
-              background: "rgba(255,255,255,0.4)",
-              borderTop: "1px solid rgba(255,255,255,0.6)",
-              borderRadius: "0 0 24px 24px",
+              padding: "8px 20px",
+              background: "var(--bg-body, #f8fafc)",
+              borderTop: "1px solid var(--border-light, rgba(255, 112, 150, 0.1))",
+              display: "flex",
+              gap: "8px",
+              overflowX: "auto",
+              whiteSpace: "nowrap",
             }}
           >
-            <form id="chatForm" onSubmit={handleSend} autoComplete="off">
-              <div className="chat-input-wrapper">
-                <textarea
-                  className="chat-input"
-                  id="chatInput"
-                  placeholder="Type a message..."
-                  rows={1}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                ></textarea>
-                <button
-                  type="button"
-                  className="chat-send-btn"
-                  id="chatMicBtn"
-                  style={{
-                    background: "white",
-                    color: "var(--color-primary)",
-                    border: "2px solid var(--border-light)",
-                    marginRight: "2px",
-                  }}
-                  title="Voice Call"
-                  onClick={() => {
-                    if (typeof window !== "undefined") {
-                      window.location.href = "/voice";
-                    }
-                  }}
-                >
-                  <i className="fa-solid fa-microphone" id="chatMicIcon"></i>
-                </button>
-                <button
-                  type="submit"
-                  className="chat-send-btn"
-                  id="sendBtn"
-                  aria-label="Send message"
-                  disabled={!input.trim()}
-                >
-                  <i className="fa-solid fa-paper-plane"></i>
-                </button>
-              </div>
-            </form>
+            <span style={{ fontSize: "11px", fontWeight: 800, color: "var(--text-muted)", alignSelf: "center" }}>
+              Suggested:
+            </span>
+            {SUGGESTED_PROMPTS.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleSend(p)}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: "14px",
+                  border: "1px solid var(--border-light, rgba(255, 112, 150, 0.25))",
+                  background: "var(--bg-card, #ffffff)",
+                  color: "var(--text-primary, #1e293b)",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {p}
+              </button>
+            ))}
           </div>
+
+          {/* Chat Input Bar */}
+          <form
+            onSubmit={(e) => handleSend(undefined, e)}
+            style={{
+              padding: "14px 20px",
+              background: "var(--bg-card, #ffffff)",
+              borderTop: "1px solid var(--border-light, rgba(255, 112, 150, 0.15))",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Ask HIM anything (cycle, mood, symptoms, advice)..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              style={{
+                flex: 1,
+                padding: "12px 18px",
+                borderRadius: "24px",
+                border: "1.5px solid var(--border-light, rgba(255, 112, 150, 0.25))",
+                background: "var(--bg-body, #f8fafc)",
+                color: "var(--text-primary)",
+                fontSize: "14px",
+                outline: "none",
+                fontWeight: 500,
+              }}
+              autoFocus
+            />
+
+            <Link
+              href="/voice"
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                background: "rgba(16, 185, 129, 0.15)",
+                color: "#059669",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                textDecoration: "none",
+                border: "1px solid rgba(16, 185, 129, 0.3)",
+              }}
+              title="Voice Assistant"
+            >
+              <i className="fa-solid fa-microphone"></i>
+            </Link>
+
+            <button
+              type="submit"
+              disabled={isTyping || !input.trim()}
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, #EC4899, #8B5CF6)",
+                color: "white",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                cursor: !input.trim() || isTyping ? "not-allowed" : "pointer",
+                opacity: !input.trim() || isTyping ? 0.6 : 1,
+                boxShadow: "0 4px 12px rgba(236, 72, 153, 0.35)",
+                transition: "transform 0.2s ease",
+              }}
+              aria-label="Send message"
+            >
+              <i className="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
         </div>
       </div>
-
-      {/* Chat History Modal */}
-      {historyOpen && (
-        <div className="modal-overlay" style={{ display: "flex" }}>
-          <div className="modal-content history-modal-content">
-            <div className="modal-header">
-              <h3>
-                <i className="fa-solid fa-clock-rotate-left"></i> Chat History
-              </h3>
-              <button
-                type="button"
-                className="close-modal"
-                id="closeHistoryBtn"
-                onClick={() => setHistoryOpen(false)}
-              >
-                &times;
-              </button>
-            </div>
-            <div className="modal-body" id="historyList">
-              <div className="session-list">
-                <div className="session-item active-session">
-                  <div className="session-item-header">
-                    <span className="session-title">Current Conversation</span>
-                    <span className="session-date">Today</span>
-                  </div>
-                  <div className="session-item-footer">
-                    <span className="session-phase">Follicular Phase</span>
-                    <span className="session-status active">Active</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

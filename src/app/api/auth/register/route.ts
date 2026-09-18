@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { createClient } from "@supabase/supabase-js";
+import { setSession } from "@/lib/session";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ehfcfprgvsfcdwjgpmzo.supabase.co";
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_hXV0bVWpfXvaazbjaw8DrQ_YR3CPU-Q";
@@ -61,7 +62,17 @@ export async function POST(req: Request) {
       next_predicted_date: nextPredictedDate.toISOString(),
     });
 
-    return NextResponse.json({ success: true, message: "User registered successfully." });
+    // Automatically establish session for newly created user
+    const sessionUser = {
+      id: user.id,
+      email: user.email,
+      name: user.full_name,
+      role: user.role || "user",
+    };
+
+    await setSession(sessionUser);
+
+    return NextResponse.json({ success: true, message: "User registered successfully.", user: sessionUser });
   } catch (error: any) {
     console.error("Register Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
