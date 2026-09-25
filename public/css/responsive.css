@@ -677,3 +677,19 @@ img, canvas, video { max-width: 100%; height: auto; }
         padding-bottom: calc(24px + env(safe-area-inset-bottom));
     }
 }
+
+/* === Mobile-first Touch Animations === */
+@media (hover: none) and (pointer: coarse) {
+    .action-btn:hover, .mood-chip-btn:hover, .stat-card:hover {
+        transform: none !important;
+        box-shadow: inherit;
+    }
+    .action-btn:active, .mood-chip-btn:active, .stat-card:active {
+        transform: scale(0.92) !important;
+        transition: transform 0.1s ease !important;
+    }
+    .btn:active {
+        transform: scale(0.95) !important;
+        transition: transform 0.1s ease !important;
+    }
+}

@@ -4,11 +4,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.herintelligentmate.in";
 
   return [
+    // Homepage — highest priority
     {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1.0,
+    },
+
+    // Core high-volume SEO slug pages (website, not app)
+    {
+      url: `${baseUrl}/period-companion`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/online-period-tracker`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/wellness-for-women`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.95,
     },
     {
       url: `${baseUrl}/feminine-ai-companion`,
@@ -23,17 +44,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/period-companion`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.95,
-    },
-    {
       url: `${baseUrl}/cycle-tracking-ai`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.95,
     },
+    {
+      url: `${baseUrl}/pms-relief-companion`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.90,
+    },
+    {
+      url: `${baseUrl}/menstrual-health-ai`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.90,
+    },
+
+    // Blog & articles
     {
       url: `${baseUrl}/blog`,
       lastModified: new Date(),
@@ -58,6 +87,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.85,
     },
+
+    // Auth pages
     {
       url: `${baseUrl}/login`,
       lastModified: new Date(),

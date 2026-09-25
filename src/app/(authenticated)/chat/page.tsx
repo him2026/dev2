@@ -20,13 +20,7 @@ const SUGGESTED_PROMPTS = [
 ];
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "ai",
-      message: "Hi! I'm HIM, your wellness companion. How are you feeling today? I'm here to listen, comfort, and support you.",
-      created_at: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [mood, setMood] = useState("neutral");
   const [isTyping, setIsTyping] = useState(false);
@@ -49,6 +43,17 @@ export default function ChatPage() {
           const data = await res.json();
           if (data.messages && data.messages.length > 0) {
             setMessages(data.messages);
+            // Check if we have any messages from today; if not, fetch a fresh greeting
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const lastMsg = data.messages[data.messages.length - 1];
+            const lastMsgDate = lastMsg?.created_at
+              ? new Date(lastMsg.created_at).toISOString().slice(0, 10)
+              : "";
+            if (lastMsgDate !== todayStr) {
+              handleSend("[SYSTEM: GREETING]", undefined, true);
+            }
+          } else {
+            handleSend("[SYSTEM: GREETING]", undefined, true);
           }
         }
       } catch (err) {
@@ -57,25 +62,28 @@ export default function ChatPage() {
     }
 
     loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = async (customText?: string, e?: React.FormEvent) => {
+  const handleSend = async (customText?: string, e?: React.FormEvent, isHidden: boolean = false) => {
     if (e) e.preventDefault();
     const textToSend = (customText || input).trim();
     if (!textToSend) return;
 
-    const userMessage: Message = {
-      sender: "user",
-      message: textToSend,
-      created_at: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    if (!customText) setInput("");
+    if (!isHidden) {
+      const userMessage: Message = {
+        sender: "user",
+        message: textToSend,
+        created_at: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      if (!customText) setInput("");
+    }
+    
     setIsTyping(true);
 
     try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import AOS from "aos";
 import Link from "next/link";
 
@@ -31,7 +31,7 @@ const VOICE_SAMPLE_PROMPTS = [
 export default function VoiceAssistantPage() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [micStatus, setMicStatus] = useState("Tap the microphone or choose a question below");
+  const [micStatus, setMicStatus] = useState("Tap \"Start Session\" to begin");
   const [breathingActive, setBreathingActive] = useState(false);
   const [breatheText, setBreatheText] = useState("Breathe In");
   const [breatheInstr, setBreatheInstr] = useState("Inhale for 4 seconds...");
@@ -40,13 +40,30 @@ export default function VoiceAssistantPage() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [lastUserSpeech, setLastUserSpeech] = useState<string>("");
   const [lastAiResponse, setLastAiResponse] = useState<string>("");
+  const [sessionStarted, setSessionStarted] = useState(false);
   const [manualText, setManualText] = useState("");
 
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const breathingIntervalRef = useRef<any>(null);
+  // Track whether the session is active to gate auto-listen
+  const sessionActiveRef = useRef(false);
 
   const currentLang = LANGUAGES.find((l) => l.code === selectedLang) || LANGUAGES[0];
+
+  // Start listening for speech input (used after TTS finishes to create the auto-loop)
+  const startListeningAfterSpeak = useCallback(() => {
+    if (!sessionActiveRef.current) return;
+    setTimeout(() => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch {
+          // Already started or unavailable
+        }
+      }
+    }, 500);
+  }, []);
 
   useEffect(() => {
     AOS.init({ duration: 600, once: false });
@@ -75,12 +92,21 @@ export default function VoiceAssistantPage() {
 
         recognition.onerror = (event: any) => {
           console.warn("Speech Recognition Info:", event.error);
+          // On "no-speech" or "aborted", auto-restart if session is active
+          if (sessionActiveRef.current && (event.error === "no-speech" || event.error === "aborted")) {
+            setMicStatus("Didn't catch that. Listening again...");
+            setIsListening(false);
+            startListeningAfterSpeak();
+            return;
+          }
           setMicStatus("Tap to speak or click a prompt below");
           setIsListening(false);
         };
 
         recognition.onend = () => {
           setIsListening(false);
+          // If session is active and we're not currently speaking, auto-restart listening
+          // (This handles cases where recognition ends without error or result)
         };
 
         recognitionRef.current = recognition;
@@ -88,6 +114,7 @@ export default function VoiceAssistantPage() {
     }
 
     return () => {
+      sessionActiveRef.current = false;
       if (breathingIntervalRef.current) clearTimeout(breathingIntervalRef.current);
       if (audioRef.current) audioRef.current.pause();
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -105,7 +132,11 @@ export default function VoiceAssistantPage() {
 
   const processVoiceInput = async (userInput: string) => {
     try {
-      setLastUserSpeech(userInput);
+      if (userInput !== "[SYSTEM: GREETING]") {
+        setLastUserSpeech(userInput);
+      } else {
+        setLastUserSpeech("");
+      }
       setMicStatus("HIM is thinking...");
       setIsSpeaking(false);
 
@@ -124,6 +155,7 @@ export default function VoiceAssistantPage() {
       setIsSpeaking(true);
 
       // 2. Synthesize audio via TTS or Browser Speech
+      let ttsHandled = false;
       try {
         const ttsRes = await fetch("/api/tts", {
           method: "POST",
@@ -136,28 +168,47 @@ export default function VoiceAssistantPage() {
           }),
         });
 
-        if (ttsRes.ok && ttsRes.headers.get("Content-Type")?.includes("audio")) {
+        // Only use TTS audio if we actually got an audio response (not JSON fallback)
+        const contentType = ttsRes.headers.get("Content-Type") || "";
+        if (ttsRes.ok && contentType.includes("audio")) {
           const audioBlob = await ttsRes.blob();
-          const audioUrl = URL.createObjectURL(audioBlob);
+          // Verify blob is a meaningful audio file (not empty or tiny)
+          if (audioBlob.size > 100) {
+            const audioUrl = URL.createObjectURL(audioBlob);
 
-          if (audioRef.current) audioRef.current.pause();
+            if (audioRef.current) audioRef.current.pause();
 
-          const audio = new Audio(audioUrl);
-          audioRef.current = audio;
+            const audio = new Audio(audioUrl);
+            audioRef.current = audio;
 
-          audio.onplay = () => {
-            setIsSpeaking(true);
-            setMicStatus("HIM is speaking...");
-          };
-          audio.onended = () => {
-            setIsSpeaking(false);
-            setMicStatus("Tap to speak again");
-          };
-          audio.onerror = () => {
-            speakText(aiReply);
-          };
-          await audio.play();
-          return;
+            audio.onplay = () => {
+              setIsSpeaking(true);
+              setMicStatus("HIM is speaking...");
+            };
+            audio.onended = () => {
+              setIsSpeaking(false);
+              setMicStatus("Listening...");
+              URL.revokeObjectURL(audioUrl);
+              startListeningAfterSpeak();
+            };
+            audio.onerror = () => {
+              URL.revokeObjectURL(audioUrl);
+              // Fall through to browser TTS
+              speakText(aiReply);
+            };
+
+            // Catch autoplay policy rejection
+            try {
+              await audio.play();
+              ttsHandled = true;
+            } catch (playError) {
+              console.warn("Audio autoplay blocked, falling back to browser TTS:", playError);
+              URL.revokeObjectURL(audioUrl);
+              // Fall through to browser TTS
+            }
+
+            if (ttsHandled) return;
+          }
         }
       } catch {
         // Fallback directly to browser TTS
@@ -203,11 +254,12 @@ export default function VoiceAssistantPage() {
       };
       utterance.onend = () => {
         setIsSpeaking(false);
-        setMicStatus("Tap to speak again");
+        setMicStatus("Listening...");
+        startListeningAfterSpeak();
       };
       utterance.onerror = () => {
         setIsSpeaking(false);
-        setMicStatus("Tap to speak");
+        setMicStatus("Ready. Tap microphone.");
       };
       window.speechSynthesis.speak(utterance);
     } else {
@@ -427,34 +479,63 @@ export default function VoiceAssistantPage() {
             }}
           ></div>
 
-          <button
-            type="button"
-            onClick={handleMicClick}
-            style={{
-              width: "100px",
-              height: "100px",
-              borderRadius: "50%",
-              background: isListening
-                ? "linear-gradient(135deg, #EF4444, #DC2626)"
-                : "linear-gradient(135deg, #10B981, #059669)",
-              color: "white",
-              fontSize: "36px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "none",
-              cursor: "pointer",
-              boxShadow: isListening
-                ? "0 8px 32px rgba(239, 68, 68, 0.5)"
-                : "0 8px 32px rgba(16, 185, 129, 0.4)",
-              position: "relative",
-              zIndex: 2,
-              transition: "all 0.25s ease",
-            }}
-            aria-label="Toggle voice recognition"
-          >
-            <i className={`fa-solid ${isListening ? "fa-microphone-slash" : "fa-microphone"}`}></i>
-          </button>
+          {!sessionStarted ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSessionStarted(true);
+                sessionActiveRef.current = true;
+                processVoiceInput("[SYSTEM: GREETING]");
+              }}
+              className="btn btn-primary"
+              style={{
+                width: "160px",
+                height: "160px",
+                borderRadius: "50%",
+                fontSize: "18px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                position: "relative",
+                zIndex: 2,
+                boxShadow: "0 8px 32px rgba(255, 112, 150, 0.4)",
+              }}
+            >
+              <i className="fa-solid fa-play" style={{ fontSize: "28px" }}></i>
+              Start Session
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleMicClick}
+              style={{
+                width: "100px",
+                height: "100px",
+                borderRadius: "50%",
+                background: isListening
+                  ? "linear-gradient(135deg, #EF4444, #DC2626)"
+                  : "linear-gradient(135deg, #10B981, #059669)",
+                color: "white",
+                fontSize: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: isListening
+                  ? "0 8px 32px rgba(239, 68, 68, 0.5)"
+                  : "0 8px 32px rgba(16, 185, 129, 0.4)",
+                position: "relative",
+                zIndex: 2,
+                transition: "all 0.25s ease",
+              }}
+              aria-label="Toggle voice recognition"
+            >
+              <i className={`fa-solid ${isListening ? "fa-microphone-slash" : "fa-microphone"}`}></i>
+            </button>
+          )}
         </div>
 
         {/* Live Status Text */}
@@ -570,7 +651,13 @@ export default function VoiceAssistantPage() {
               <button
                 key={i}
                 type="button"
-                onClick={() => processVoiceInput(prompt)}
+                onClick={() => {
+                  if (!sessionActiveRef.current) {
+                    setSessionStarted(true);
+                    sessionActiveRef.current = true;
+                  }
+                  processVoiceInput(prompt);
+                }}
                 style={{
                   padding: "8px 16px",
                   borderRadius: "20px",
@@ -605,6 +692,10 @@ export default function VoiceAssistantPage() {
             onSubmit={(e) => {
               e.preventDefault();
               if (manualText.trim()) {
+                if (!sessionActiveRef.current) {
+                  setSessionStarted(true);
+                  sessionActiveRef.current = true;
+                }
                 processVoiceInput(manualText);
                 setManualText("");
               }

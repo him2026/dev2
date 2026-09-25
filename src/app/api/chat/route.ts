@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     const session = await getSession();
     const body = await req.json();
-    const { message, mood = "neutral" } = body;
+    const { message, mood = "neutral", assistantGender = "female" } = body;
 
     if (!message || typeof message !== "string" || !message.trim()) {
       return NextResponse.json({ error: "Message cannot be empty." }, { status: 400 });
@@ -103,32 +103,49 @@ export async function POST(req: Request) {
         sessionId = newSession?.id || null;
       }
 
-      // Fetch recent messages for conversational context
-      if (sessionId) {
+      // Fetch recent messages for conversational context across sessions
+      const { data: allSessions } = await supabase
+        .from("chat_sessions")
+        .select("id")
+        .eq("user_id", userId)
+        .order("started_at", { ascending: false })
+        .limit(3);
+      
+      const recentSessionIds = allSessions?.map((s) => s.id) || [];
+      if (sessionId && !recentSessionIds.includes(sessionId)) {
+        recentSessionIds.unshift(sessionId);
+      }
+
+      if (recentSessionIds.length > 0) {
         const { data: recMsgs } = await supabase
           .from("chat_messages")
           .select("sender, message")
-          .eq("session_id", sessionId)
+          .in("session_id", recentSessionIds)
           .order("created_at", { ascending: false })
-          .limit(6);
+          .limit(10);
 
         if (recMsgs) {
           pastMessages = (recMsgs as MessageRecord[]).reverse();
         }
 
-        // Save current user message
-        await supabase.from("chat_messages").insert({
-          session_id: sessionId,
-          sender: "user",
-          message: trimmedInput,
-          created_at: new Date().toISOString(),
-        });
+        // Save current user message if it's not a system greeting
+        if (trimmedInput !== "[SYSTEM: GREETING]" && sessionId) {
+          await supabase.from("chat_messages").insert({
+            session_id: sessionId,
+            sender: "user",
+            message: trimmedInput,
+            created_at: new Date().toISOString(),
+          });
+        }
       }
     }
 
     // 2. Multi-tier Generation: Try Cloud AI with strict 2.5-second timeout, else Context-Aware Clinical Engine
     let reply = "";
     const nvidiaApiKey = process.env.NVIDIA_API_KEY;
+    const currentDate = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const isGreeting = trimmedInput === "[SYSTEM: GREETING]";
+    const assistantName = assistantGender === "male" ? "Raj" : "Meera";
 
     if (nvidiaApiKey && !nvidiaApiKey.includes("invalid")) {
       try {
@@ -140,17 +157,19 @@ export async function POST(req: Request) {
         });
 
         const historyContext = pastMessages
-          .map((m) => `${m.sender === "user" ? "User" : "HIM"}: ${m.message}`)
+          .map((m) => `${m.sender === "user" ? "User" : assistantName}: ${m.message}`)
           .join("\n");
+
+        const userPrompt = isGreeting ? `Hello ${assistantName}. Please greet me warmly. Introduce yourself as ${assistantName}, my personal AI assistant. Include the current day and date, and ask how I am doing. I just opened the app.` : trimmedInput;
 
         const completion = await openai.chat.completions.create({
           model: "nvidia/llama-3.1-nemotron-70b-instruct",
           messages: [
             {
               role: "system",
-              content: `You are HIM (Her Intelligent Mate), a deeply caring, loving, empathetic AI companion for women. User: ${userName}. Current phase: ${cyclePhase} (Day ${cycleDay} of ${avgCycleLength}, ~${daysUntil} days until next period). Recent mood: ${mood}. Previous context:\n${historyContext}\nRespond warmly, concisely (<80 words), with genuine personal connection.`,
+              content: `You are ${assistantName}, a deeply caring, loving, empathetic AI companion. Your name is ${assistantName}. Always introduce yourself as "${assistantName}" when greeting. User: ${userName}. Today is ${currentDate}. Current phase: ${cyclePhase} (Day ${cycleDay} of ${avgCycleLength}, ~${daysUntil} days until next period). Recent mood: ${mood}. Previous context:\n${historyContext}\nRespond warmly, concisely (<80 words), with genuine personal connection. Never refer to yourself as "HIM", always use "${assistantName}".`,
             },
-            { role: "user", content: trimmedInput },
+            { role: "user", content: userPrompt },
           ],
           temperature: 0.6,
           max_tokens: 200,
@@ -165,11 +184,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // 3. HIM Empathetic Context-Aware Clinical Intelligence Engine (Instant & 100% Reliable)
+    // 3. Empathetic Context-Aware Clinical Intelligence Engine (Instant & 100% Reliable)
     if (!reply) {
       reply = generateContextualResponse({
         message: trimmedInput,
         userName,
+        assistantName,
         cyclePhase,
         cycleDay,
         daysUntil,
@@ -196,6 +216,7 @@ export async function POST(req: Request) {
       daysUntil,
       contextAware: true,
       userName,
+      assistantName,
     });
   } catch (error: any) {
     console.error("Chat API error:", error);
@@ -213,6 +234,7 @@ export async function POST(req: Request) {
 function generateContextualResponse({
   message,
   userName,
+  assistantName,
   cyclePhase,
   cycleDay,
   daysUntil,
@@ -221,6 +243,7 @@ function generateContextualResponse({
 }: {
   message: string;
   userName: string;
+  assistantName: string;
   cyclePhase: string;
   cycleDay: number;
   daysUntil: number;
@@ -230,6 +253,11 @@ function generateContextualResponse({
   const lower = message.toLowerCase().trim();
   const lastUserMsg = pastMessages.filter((m) => m.sender === "user").slice(-2)[0]?.message.toLowerCase() || "";
   const lastAiMsg = pastMessages.filter((m) => m.sender === "ai").slice(-1)[0]?.message || "";
+  const currentDate = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+  if (message === "[SYSTEM: GREETING]") {
+    return `Hi ${userName}! 💕 I'm ${assistantName}, your personal AI assistant. Happy ${currentDate}! You're on Day ${cycleDay} of your ${cyclePhase}. How are you feeling today?`;
+  }
 
   // 1. Single punctuation or question mark: "?" or "what?"
   if (lower === "?" || lower === "what?" || lower === "why?" || lower === "huh?") {
@@ -242,9 +270,9 @@ function generateContextualResponse({
   // 2. Greetings & Check-ins ("hi", "hello", "hey", "good morning", "sup")
   if (/^(hi|hello|hey|heyy|heya|hola|namaste|good\s*(morning|afternoon|evening)|hlo)\b/.test(lower)) {
     const greetings = [
-      `Hey ${userName}! 💕 It's so lovely to hear from you. You're on Day ${cycleDay} of your cycle (${cyclePhase}). How are you feeling today?`,
-      `Hi ${userName}! I was just hoping you'd stop by. How is your energy holding up today? I'm right here with you.`,
-      `Hello ${userName}! Always so comforting to see you. How is your body feeling during this ${cyclePhase}?`,
+      `Hey ${userName}! 💕 This is ${assistantName}. Happy ${currentDate}! You're on Day ${cycleDay} of your cycle (${cyclePhase}). How are you feeling today?`,
+      `Hi ${userName}! It's ${assistantName} here. I was hoping you'd stop by on this lovely ${currentDate.split(",")[0]}. How is your energy holding up? I'm right here with you.`,
+      `Hello ${userName}! ${assistantName} here. Always so comforting to see you. How is your body feeling during this ${cyclePhase}?`,
     ];
     return greetings[Math.floor(Math.random() * greetings.length)];
   }

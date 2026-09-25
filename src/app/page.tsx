@@ -4,19 +4,23 @@ import HomeClientWrapper from "@/components/HomeClientWrapper";
 import JsonLd, { faqSchema } from "@/components/JsonLd";
 
 export const metadata: Metadata = {
-  title: "HIM - Her Intelligent Mate | #1 AI Period Companion & Feminine Health Ally",
-  description: "Experience HIM (Her Intelligent Mate) — the leading AI period companion and feminine wellness assistant. Intelligent menstrual cycle prediction, empathetic PMS support, mood tracking, and 24/7 voice companion.",
+  title: "HIM - Her Intelligent Mate | #1 AI Period Companion & Feminine Health Website",
+  description: "Experience HIM (Her Intelligent Mate) at herintelligentmate.in — the leading AI period companion and feminine wellness website. Free online period tracker, intelligent menstrual cycle prediction, empathetic PMS support, mood tracking, and 24/7 voice companion for women worldwide.",
   keywords: [
     "AI period companion",
     "period companion",
+    "online period tracker",
+    "free period tracker online",
     "feminine AI companion",
     "AI companion period",
     "women AI companion",
-    "period tracker AI",
+    "period tracker",
     "cycle tracking AI",
     "PMS support AI companion",
     "feminine health companion",
     "menstrual companion",
+    "wellness for women",
+    "women wellness website",
     "Her Intelligent Mate",
     "herintelligentmate.in"
   ],
@@ -24,11 +28,11 @@ export const metadata: Metadata = {
     canonical: "https://www.herintelligentmate.in",
   },
   openGraph: {
-    title: "HIM - Her Intelligent Mate | #1 AI Period Companion",
-    description: "Discover HIM — your empathetic AI period companion. Predict cycle phases, manage PMS symptoms, track moods, and get 24/7 comforting voice and chat support.",
+    title: "HIM - Her Intelligent Mate | #1 AI Period Companion & Feminine Health Website",
+    description: "Discover HIM at herintelligentmate.in — your empathetic AI period companion. Free online period tracker, cycle prediction, PMS relief, mood tracking, and 24/7 voice chat. No download needed.",
     url: "https://www.herintelligentmate.in",
     siteName: "HIM - Her Intelligent Mate",
-    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "HIM AI Period Companion" }],
+    images: [{ url: "/images/og-image.jpg", width: 1200, height: 630, alt: "HIM AI Period Companion & Women Wellness Website - herintelligentmate.in" }],
     type: "website",
   },
 };
@@ -49,9 +53,10 @@ export default function Home() {
           </Link>
           <nav className="header-nav-guest" aria-label="Main Navigation">
             <a href="#features" className="nav-link-guest">Features</a>
+            <Link href="/online-period-tracker" className="nav-link-guest">Period Tracker</Link>
             <Link href="/period-companion" className="nav-link-guest">Period Companion</Link>
+            <Link href="/wellness-for-women" className="nav-link-guest">Wellness</Link>
             <Link href="/feminine-ai-companion" className="nav-link-guest">Feminine AI</Link>
-            <Link href="/cycle-tracking-ai" className="nav-link-guest">Cycle AI</Link>
             <Link href="/blog" className="nav-link-guest">Articles</Link>
             <Link href="/login" className="btn btn-ghost-nav">Login</Link>
             <Link href="/register" className="btn btn-primary-sm">Get Started</Link>
@@ -68,7 +73,9 @@ export default function Home() {
             <i className="fa-solid fa-xmark"></i>
           </button>
           <a href="#features">Features</a>
+          <Link href="/online-period-tracker">Online Period Tracker</Link>
           <Link href="/period-companion">AI Period Companion</Link>
+          <Link href="/wellness-for-women">Wellness for Women</Link>
           <Link href="/feminine-ai-companion">Feminine AI Companion</Link>
           <Link href="/cycle-tracking-ai">Cycle Tracking AI</Link>
           <Link href="/blog">Wellness Articles</Link>
@@ -470,9 +477,12 @@ export default function Home() {
             </div>
             <div className="footer-links">
               <h4>SEO Topic Hubs</h4>
+              <Link href="/online-period-tracker">Online Period Tracker</Link>
               <Link href="/period-companion">AI Period Companion</Link>
+              <Link href="/wellness-for-women">Wellness for Women</Link>
               <Link href="/feminine-ai-companion">Feminine AI Companion</Link>
               <Link href="/cycle-tracking-ai">Cycle Tracking AI</Link>
+              <Link href="/pms-relief-companion">PMS Relief</Link>
               <Link href="/blog">Wellness Articles</Link>
             </div>
             <div className="footer-links">
