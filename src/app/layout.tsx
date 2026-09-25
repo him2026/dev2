@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import JsonLd, { websiteSchema, softwareApplicationSchema, organizationSchema, faqSchema } from "@/components/JsonLd";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
@@ -143,6 +144,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
         </ThemeProvider>
+        <Analytics />
         <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" async></script>
       </body>
     </html>
